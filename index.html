@@ -848,31 +848,39 @@
     requestAnimationFrame(shootUp);
   }
 
-  // ── 3단계: 입에서 보라색 원 깔끔 확장 ──
+  // ── 3단계: 입에서 유기적 리퀴드 웨이브 확장 ──
   function explodeFromMouth() {
     const mouthScreen = svgToScreen(MOUTH_X, MOUTH_Y);
 
     let expandStart = null;
-    const maxRadius = Math.hypot(window.innerWidth, window.innerHeight);
+    const maxRadius = Math.hypot(window.innerWidth, window.innerHeight) * 1.2;
 
     function expandCircle(ts) {
       if (!expandStart) expandStart = ts;
-      const t = Math.min(1, (ts - expandStart) / 1000);
+      const t = Math.min(1, (ts - expandStart) / 1100);
       const ease = 1 - Math.pow(1 - t, 4);
       const radius = ease * maxRadius;
 
-      // 캔버스 그리기 (파티클 없이 깔끔한 순수 보라색 원 확장)
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+      // 외곽 1: 연한 보라빛 엠보싱 글로우 링
+      ctx.globalAlpha = Math.max(0, 0.4 * (1 - t));
+      ctx.fillStyle = `hsl(280, 100%, 75%)`;
+      ctx.beginPath();
+      ctx.arc(mouthScreen.x, mouthScreen.y, radius * 1.15, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 외곽 2: 보라색 메인 리퀴드 웨이브
       ctx.globalAlpha = 1;
       ctx.fillStyle = `hsl(280, 100%, 50%)`;
       ctx.beginPath();
       ctx.arc(mouthScreen.x, mouthScreen.y, radius, 0, Math.PI * 2);
       ctx.fill();
 
-      // SVG 페이드아웃 (원이 커지면서)
-      svg.style.opacity = Math.max(0, 1 - t * 2);
+      // SVG 디스플레이 페이드아웃
+      svg.style.opacity = Math.max(0, 1 - t * 2.2);
 
-      if (t >= 0.8) {
+      if (t >= 0.75) {
         startFinalTyping();
       }
 
@@ -882,6 +890,22 @@
     }
     requestAnimationFrame(expandCircle);
   }
+  }
+
+  // ── 최종 화면팔레트 부드러운 컬러 사이클링 시스템 ─────────────────────────
+  let paletteAnim = null;
+  function startPaletteCycle() {
+    const finalScreen = document.getElementById('final-screen');
+    if (!finalScreen) return;
+    let currentHue = 280; // 280도 보라색에서 시작
+
+    function step() {
+      currentHue = (currentHue + 0.35) % 360; // 60fps 실크스무스 무지개 팔레트 이동
+      // 38% 어두운 명도(Lightness)를 유지하여 어떤 색상으로 바뀌어도 흰색/노란색/빨간색 글씨 100% 가독성 보장!
+      finalScreen.style.background = `hsl(${currentHue}, 88%, 38%)`;
+      paletteAnim = requestAnimationFrame(step);
+    }
+    paletteAnim = requestAnimationFrame(step);
   }
 
   // ── 최종 보라색 화면 타이핑 시스템 (컬러 하이라이트 디자인 적용) ─────────────────────────
@@ -962,6 +986,8 @@
         clearInterval(finalTimer);
         typeAudio.pause();
         typeAudio.loop = false;
+        // 텍스트 타이핑 100% 완독 시 팔레트 사이클링 시작!
+        startPaletteCycle();
       }
     }, 38);
   }
