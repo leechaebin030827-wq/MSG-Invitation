@@ -33,6 +33,15 @@
     #ball-mok3:active {
       cursor: grabbing;
     }
+    @keyframes bounceUpDown {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+    @keyframes bounceDown {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(4px); }
+    }
+    .hint-arrow { transition: opacity 0.4s ease; }
   </style>
 </head>
 <body>
@@ -163,10 +172,31 @@
   <!-- 우측 상단 빈 공간에 텍스트 (foreignObject) -->
   <!-- 우측 상단 빈 공간에 텍스트 (foreignObject) -->
   <foreignObject x="484" y="276" width="87" height="113">
-    <div id="secret-text" xmlns="http://www.w3.org/1999/xhtml" style="opacity: 0; width: 100%; height: 100%; padding: 4px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; text-align: justify; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 5.1px; line-height: 1.35; letter-spacing: -0.2px; word-break: break-all; font-weight: 600; transition: opacity 0.3s ease-out;">
+    <div id="secret-text" xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; padding: 4px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; text-align: justify; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 5.1px; line-height: 1.35; letter-spacing: -0.2px; word-break: break-all; font-weight: 600; overflow: hidden;">
       <span><span style="color:#e60012">1년</span> 동안 준비한 <span style="color:#e60012">이야기</span>를 드디어 <span style="background:#8cc63f;color:#000;padding:0.2px 1px;">끝냈습니다.</span> 이제 <span style="color:#8cc63f">정말</span> 끝이라고 <span style="color:#00a1e9">생각</span>했습니다. <span style="color:#8cc63f">그런데</span> 자꾸 하나씩 생각이 나더라고요? '<span style="background:#fff100;color:#000;padding:0.2px 1px;">아,</span> <span style="background:#66c0f4;color:#000;padding:0.2px 1px;">이것도.</span>' '<span style="background:#66c0f4;color:#e60012;padding:0.2px 1px;">이것도</span> 말해야 하는데...' 그러다 보니 <span style="color:#e60012">여기</span>까지 왔습니다. <span style="color:#f0ad4e">음...</span> 생각보다 <span style="background:#8cc63f;color:#000;padding:0.2px 1px;">볼 것도</span> 많습니다. <span style="background:#fff100;color:#e4007f;padding:0.2px 1px;">영상</span>도 있고, <span style="background:#f37021;color:#00a1e9;padding:0.2px 1px;">인터랙션</span>도 있고, <span style="background:#e4007f;color:#fff100;padding:0.2px 1px;">사진</span>도 있고, <span style="background:#8cc63f;color:#f37021;padding:0.2px 1px;">그래픽</span>도 있고... 욕심이 꽤 <span style="color:#f37021">많습니다.</span> 아, <span style="color:#8cc63f">그리고..</span> <span style="background:#e6e6e6;color:#000;padding:0.2px 1px;">사실</span> 저희 진짜 <span style="color:#e60012">돈</span>도 많이 썼습니다. 이건 <span style="color:#e60012">농담</span>이 아니라 <span style="background:#fff100;color:#00a1e9;padding:0.2px 1px;">진심입니다.</span> 한 번쯤은 꼭 봐주셨으면 좋겠습니다... <span style="color:#f0ad4e">죄송합니다.</span> <span style="color:#e60012">이야기</span>가 자꾸 길어지네요. 아직 <span style="background:#8cc63f;color:#fff;padding:0.2px 1px;">하고 싶은 말</span>이 <span style="background:#66c0f4;color:#000;padding:0.2px 1px;">조금</span> <span style="color:#8cc63f">남았</span>나 봅니다. <span style="background:#f37021;color:#fff;padding:0.2px 1px;">마치</span> <span style="background:#e4007f;color:#fff;padding:0.2px 1px;">목에 걸린 사탕</span><span style="background:#f37021;color:#fff;padding:0.2px 1px;">처럼요...</span></span>
     </div>
   </foreignObject>
+
+  <!-- 화살표 힌트 -->
+  <g id="hint-updown" class="hint-arrow" opacity="1">
+    <!-- ▲ 위 화살표 -->
+    <g style="animation: bounceUpDown 1.2s ease-in-out infinite;">
+      <polygon fill="#aaa" points="355,408 350,416 360,416" />
+    </g>
+    <!-- ▼ 아래 화살표 -->
+    <g style="animation: bounceDown 1.2s ease-in-out infinite;">
+      <polygon fill="#aaa" points="355,462 350,454 360,454" />
+    </g>
+  </g>
+
+  <!-- 아래로 내리라는 화살표 (텍스트 다 나온 후) -->
+  <g id="hint-down" class="hint-arrow" opacity="0">
+    <g style="animation: bounceDown 0.8s ease-in-out infinite;">
+      <polygon fill="#8b5cf6" points="355,462 348,450 362,450" />
+      <polygon fill="#8b5cf6" points="355,470 348,458 362,458" opacity="0.5" />
+    </g>
+  </g>
+
 </svg>
 
 <!-- 보라색 폭발 오버레이 + 파티클 캔버스 -->
@@ -196,6 +226,108 @@
   let isExploding  = false;
   let pulseAnim    = null;
   const secretTxt  = document.getElementById('secret-text');
+
+  // ── 타이핑 시스템 초기화 ────────────────────────────
+  let allChars = [];   // {el, originalDisplay}
+  let revealedCount = 0;
+  const DRAG_PER_CHAR = 8; // 훨씬 느린 타이핑 (8px 드래그당 1글자)
+
+  function initTyping() {
+    const container = secretTxt.querySelector('span');
+    if (!container) return;
+    const originalHTML = container.innerHTML;
+    // HTML을 파싱하여 각 글자를 span으로 감쌈
+    const temp = document.createElement('div');
+    temp.innerHTML = originalHTML;
+    let newHTML = '';
+
+    function wrapChars(node) {
+      let result = '';
+      node.childNodes.forEach(child => {
+        if (child.nodeType === 3) {
+          // 텍스트 노드: 글자마다 span으로 감쌈
+          for (const ch of child.textContent) {
+            if (ch === ' ') {
+              result += '<span class="tch" style="display:none;"> </span>';
+            } else {
+              result += `<span class="tch" style="display:none;">${ch}</span>`;
+            }
+          }
+        } else if (child.nodeType === 1) {
+          // 엘리먼트 노드: 스타일 유지하면서 내부 글자 감쌈
+          const tag = child.tagName.toLowerCase();
+          let attrs = '';
+          for (const attr of child.attributes) {
+            attrs += ` ${attr.name}="${attr.value}"`;
+          }
+          result += `<${tag}${attrs}>${wrapChars(child)}</${tag}>`;
+        }
+      });
+      return result;
+    }
+
+    container.innerHTML = wrapChars(temp);
+    allChars = Array.from(container.querySelectorAll('.tch'));
+    revealedCount = 0;
+  }
+
+  // 커서 (깜박이는 블록 커서)
+  let cursorEl = null;
+  function createCursor() {
+    cursorEl = document.createElement('span');
+    cursorEl.style.cssText = 'display:none;width:0.3em;height:1em;background:#231f20;vertical-align:text-bottom;margin-left:0.5px;';
+    cursorEl.className = 'type-cursor';
+    // 깜박임 애니메이션은 CSS로
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+      .type-cursor { animation: blink 0.7s step-end infinite; display: inline-block !important; }
+    `;
+    document.head.appendChild(style);
+  }
+  createCursor();
+
+  // 타이핑 효과음 (타닥 소리)
+  function playTypeClick() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    // 짧고 날카로운 클릭
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(800 + Math.random() * 600, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.03);
+    g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+    osc.connect(g);
+    g.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.05);
+  }
+
+  function revealChars(count) {
+    const target = Math.min(count, allChars.length);
+    let newChars = false;
+    for (let i = revealedCount; i < target; i++) {
+      allChars[i].style.display = 'inline';
+      newChars = true;
+    }
+    if (newChars && target > revealedCount) {
+      playTypeClick();
+    }
+    revealedCount = target;
+
+    // 커서 위치 업데이트
+    if (cursorEl && cursorEl.parentNode) cursorEl.parentNode.removeChild(cursorEl);
+    if (revealedCount > 0 && revealedCount < allChars.length) {
+      allChars[revealedCount - 1].after(cursorEl);
+      cursorEl.style.display = 'inline-block';
+    } else if (revealedCount >= allChars.length && cursorEl) {
+      cursorEl.style.display = 'none';
+    }
+  }
+
+  // 페이지 로드 시 초기화
+  initTyping();
 
   // ── Web Audio API ────────────────────────────────
   let audioCtx = null;
@@ -334,12 +466,26 @@
     // 사운드 업데이트
     updateSound(ratio);
 
-    // 텍스트 나타남
+    // 타이핑 텍스트 나타남 (드래그 누적 거리 기반)
     if (isDragging) {
+      // 처음 드래그 시 위아래 화살표 숨기기
+      const hintUD = document.getElementById('hint-updown');
+      if (hintUD) hintUD.setAttribute('opacity', '0');
+
       dragAmount += Math.abs(ballCY - lastCY);
-      if (dragAmount > 100) {
-        let op = Math.min(1, (dragAmount - 100) / 400);
-        secretTxt.style.opacity = op;
+      const charsToShow = Math.floor(dragAmount / DRAG_PER_CHAR);
+      if (charsToShow > revealedCount) {
+        revealChars(charsToShow);
+      }
+
+      // 텍스트 다 나오면 아래 화살표 표시
+      const hintD = document.getElementById('hint-down');
+      if (hintD) {
+        if (revealedCount >= allChars.length) {
+          hintD.setAttribute('opacity', '1');
+        } else {
+          hintD.setAttribute('opacity', '0');
+        }
       }
     }
     lastCY = ballCY;
@@ -384,8 +530,7 @@
       this.vy = Math.sin(angle) * speed;
       this.life = 1;
       this.decay = 0.008 + Math.random() * 0.015;
-      this.size = 3 + Math.random() * 8;
-      this.hue = hue + (Math.random() - 0.5) * 40;
+      this.size = 6 + Math.random() * 14;
       this.gravity = 0.05 + Math.random() * 0.1;
     }
     update() {
@@ -396,10 +541,10 @@
       this.life -= this.decay;
     }
     draw(ctx) {
-      ctx.globalAlpha = this.life * 0.8;
-      ctx.fillStyle = `hsl(${this.hue}, 100%, ${50 + (1 - this.life) * 30}%)`;
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = `hsl(280, 100%, 50%)`;
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
       ctx.fill();
     }
   }
