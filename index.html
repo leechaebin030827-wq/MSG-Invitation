@@ -471,10 +471,10 @@
     revealedCount = target;
 
     // 커서 위치 업데이트
-    if (cursorEl && cursorEl.parentNode) cursorEl.parentNode.removeChild(cursorEl);
     if (revealedCount > 0 && revealedCount < allChars.length) {
       allChars[revealedCount - 1].after(cursorEl);
       cursorEl.style.display = 'inline-block';
+    }
     // 타이핑 100% 완료 시 힌트 화살표 전환
     if (revealedCount >= allChars.length) {
       const hintUD = document.getElementById('hint-updown');
