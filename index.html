@@ -780,50 +780,67 @@
   // ── 2단계: 쏘아 올라감 (시네마틱 카메라 정중앙 줌인 & 포커스 트래킹 모션) ──
   function shootUpPhase() {
     playOutSound();
+    
+    // 타겟 및 원본 좌표를 transform 적용 이전에 미리 1회 정밀 계산 (피드백 루프 방지)
+    const startScreenPos = svgToScreen(ballCX, startY);
+    const endScreenPos   = svgToScreen(MOUTH_X, MOUTH_Y);
+
     let shootStart = null;
-    const shootDur = 720; // 720ms로 속도감과 카메라 트래킹 감상 시간 부여
+    const shootDur = 650; // 650ms의 다이내믹 템포
 
     function shootUp(ts) {
       if (!shootStart) shootStart = ts;
       const t = Math.min(1, (ts - shootStart) / shootDur);
-      
-      // 강력한 위쪽 가속 파워 곡선 (anticipation -> rocket acceleration)
-      const ease = t < 0.15 
-        ? -0.5 * (t / 0.15) // 초반 15% 살짝 밑으로 웅크리기(Anticipation)
-        : 1 - Math.pow(1 - (t - 0.15)/0.85, 3); // 솟구치는 가속
 
-      const cy = startY + (endY - startY) * Math.max(0, ease);
+      // 탄성 반동(Anticipation 10%) 후 솟구치는 3차 가속곡선
+      let ease;
+      if (t < 0.1) {
+        ease = -0.3 * (t / 0.1); // 살짝 아래로 반동
+      } else {
+        const progress = (t - 0.1) / 0.9;
+        ease = progress * progress * (3 - 2 * progress); // smooth cubic acceleration
+      }
 
-      ball.setAttribute('y', (cy - BALL_R).toFixed(3));
-      wall.setAttribute('d', buildPath(Math.max(Y_MIN, Math.min(Y_MAX, cy))));
+      const currentY = startY + (endY - startY) * Math.max(0, ease);
 
-      // 솟구쳐 오르는 로켓 스트레칭 (세로로 길쭉하게 쫙 늘어남)
+      // 공 위치 & 벽 팽창 업데이트
+      ball.setAttribute('y', (currentY - BALL_R).toFixed(3));
+      wall.setAttribute('d', buildPath(Math.max(Y_MIN, Math.min(Y_MAX, currentY))));
+
+      // 솟구쳐 오르는 로켓 스트레칭
       const stretchRatio = Math.sin(t * Math.PI);
-      const stretchY = 1 + stretchRatio * 1.2;  // 최대 2.2배 세로 스트레칭
-      const stretchX = 1 - stretchRatio * 0.35; // 0.65배 가로 슬림화
-      const growScale = 1 + t * 1.5;
+      const stretchY = 1 + stretchRatio * 1.1;  // 세로 스트레칭
+      const stretchX = 1 - stretchRatio * 0.3;  // 가로 슬림화
+      const growScale = 1 + t * 1.4;
       ball.setAttribute('transform',
-        `translate(${ballCX}, ${cy}) scale(${stretchX * growScale}, ${stretchY * growScale}) translate(${-ballCX}, ${-cy})`);
+        `translate(${ballCX}, ${currentY}) scale(${stretchX * growScale}, ${stretchY * growScale}) translate(${-ballCX}, ${-currentY})`);
 
-      // 🎥 카메라 포커스: 보라색 공이 정확히 화면 정중앙에 위치하도록 줌인 + 트래킹
-      const zoom = 1 + Math.sin(Math.min(1, t * 1.1) * Math.PI * 0.75) * 1.8; // 1.0x -> 2.8x 줌인
-      const ballPos = svgToScreen(ballCX, cy);
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-      const shiftX = centerX - ballPos.x;
-      const shiftY = centerY - ballPos.y;
+      // 🎥 100% 수학적 피드백-프리 정중앙 카메라 트래킹
+      const currScreenX = startScreenPos.x + (endScreenPos.x - startScreenPos.x) * Math.max(0, ease);
+      const currScreenY = startScreenPos.y + (endScreenPos.y - startScreenPos.y) * Math.max(0, ease);
 
-      const shakeAmt = Math.sin(t * Math.PI) * 4;
-      const shakeX = Math.sin(t * 70) * shakeAmt;
-      const shakeY = Math.cos(t * 60) * shakeAmt;
+      // 줌 레벨: 1.0배 -> 최대 2.5배 줌인
+      const zoom = 1 + Math.sin(t * Math.PI * 0.85) * 1.5;
 
-      svg.style.transformOrigin = `${ballPos.x}px ${ballPos.y}px`;
-      svg.style.transform = `translate(${shiftX + shakeX}px, ${shiftY + shakeY}px) scale(${zoom})`;
+      const screenW = window.innerWidth;
+      const screenH = window.innerHeight;
 
-      // 공 뒤로 불꽃 잔상 파티클 트레일
+      // 카메라가 공(currScreenX, currScreenY)을 정확히 화면 중앙 (screenW/2, screenH/2)에 렌더링하도록 이동
+      const tx = (screenW / 2) - (currScreenX * zoom);
+      const ty = (screenH / 2) - (currScreenY * zoom);
+
+      // 박진감 넘치는 위쪽 흔들림(shake)
+      const shakeAmt = Math.sin(t * Math.PI) * 5;
+      const shakeX = Math.sin(t * 80) * shakeAmt;
+      const shakeY = Math.cos(t * 70) * shakeAmt;
+
+      svg.style.transformOrigin = '0 0';
+      svg.style.transform = `translate(${tx + shakeX}px, ${ty + shakeY}px) scale(${zoom})`;
+
+      // 공 뒤 잔상 파티클 흩날림
       if (t > 0.1 && t < 0.9) {
-        for (let i = 0; i < 4; i++) {
-          particles.push(new Particle(centerX + (Math.random()-0.5)*20, centerY + (Math.random()-0.5)*20, 280));
+        for (let i = 0; i < 3; i++) {
+          particles.push(new Particle(screenW / 2 + (Math.random() - 0.5) * 24, screenH / 2 + (Math.random() - 0.5) * 24, 280));
         }
       }
 
