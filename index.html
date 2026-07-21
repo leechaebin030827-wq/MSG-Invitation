@@ -448,6 +448,15 @@
     } catch(e) {}
   }
 
+  // 햅틱 진동 효과 (모바일 폰용)
+  function triggerHaptic() {
+    if ('vibrate' in navigator) {
+      try {
+        navigator.vibrate(10);
+      } catch(e) {}
+    }
+  }
+
   function revealChars(count) {
     const target = Math.min(count, allChars.length);
     let newChars = false;
@@ -457,6 +466,7 @@
     }
     if (newChars && target > revealedCount) {
       playTypeClick();
+      triggerHaptic();
     }
     revealedCount = target;
 
