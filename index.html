@@ -306,23 +306,23 @@
               el.style.opacity = '1';
               el.style.transform = 'scale(1)';
 
-              // 주황 볼(mok3)이 나타날 때 평평했던 벽이 볼 모양에 맞춰 팽창(expand)
+              // 주황 볼(mok3)이 나타날 때 평평했던 벽이 고무처럼 팽창(elastic expand)
               if (el.id === 'ball-mok3') {
-                let expandProgress = 0;
-                function animateWallExpand() {
-                  if (expandProgress >= 1) {
+                let startTime = null;
+                const dur = 700;
+                function animateWallExpand(ts) {
+                  if (!startTime) startTime = ts;
+                  const t = Math.min(1, (ts - startTime) / dur);
+                  // 고무 팽창 탄성 스프링 이징 (0 -> 1.25 -> 1.0)
+                  const factor = t === 1 ? 1 : 1 - Math.exp(-6 * t) * Math.cos(10 * t);
+                  wall.setAttribute('d', buildPathFactor(434.45, factor));
+                  if (t < 1) {
+                    requestAnimationFrame(animateWallExpand);
+                  } else {
                     update(434.45);
-                    return;
                   }
-                  expandProgress += 0.05;
-                  // 평평한 벽에서 볼록한 벽으로 스무스하게 팽창
-                  if (expandProgress < 1) {
-                    const currentPath = buildPath(434.45); // 벽 확장
-                    wall.setAttribute('d', currentPath);
-                  }
-                  requestAnimationFrame(animateWallExpand);
                 }
-                animateWallExpand();
+                requestAnimationFrame(animateWallExpand);
               }
             }, idx * 120);
           });
@@ -555,22 +555,31 @@
   }
 
   // ── 경로 빌드 ────────────────────────────────────
-  function buildPath(cy) {
-    const bStart = cy - BULGE_HALF;
-    const bEnd   = cy + BULGE_HALF;
+  function buildPathFactor(cy, factor = 1) {
+    if (factor <= 0) return buildFlatPath();
+    const bHalf = BULGE_HALF * factor;
+    const bStart = cy - bHalf;
+    const bEnd   = cy + bHalf;
     const topSeg = (bStart - TOP_Y).toFixed(3);
     const botSeg = (FOOT_Y  - bEnd).toFixed(3);
+    const r1 = (4.01 * factor).toFixed(3);
+    const r3 = (5.83 * factor).toFixed(3);
+
     return [
       `M 369.25,${TOP_Y}`,
       `v ${topSeg}`,
-      `c 0,4.18,1.51,8.16,4.01,11.5,5.83,7.79,5.83,19.65,0,27.44,-2.5,3.34,-4.01,7.33,-4.01,11.51`,
+      `c 0,${(4.18*factor).toFixed(3)},${(1.51*factor).toFixed(3)},${(8.16*factor).toFixed(3)},${r1},${(11.5*factor).toFixed(3)},${r3},${(7.79*factor).toFixed(3)},${r3},${(19.65*factor).toFixed(3)},0,${(27.44*factor).toFixed(3)},-${(2.5*factor).toFixed(3)},${(3.34*factor).toFixed(3)},-${r1},${(7.33*factor).toFixed(3)},-${r1},${(11.51*factor).toFixed(3)}`,
       `v ${botSeg}`,
       `h 28.35 v 22.68 h -85.04 v -22.68 h 28.34`,
       `v -${botSeg}`,
-      `c 0,-4.16,-1.5,-8.13,-3.99,-11.46,-5.81,-7.76,-5.84,-19.66,-.01,-27.45,2.5,-3.35,4.01,-7.33,4.01,-11.5`,
+      `c 0,-${(4.16*factor).toFixed(3)},-${(1.5*factor).toFixed(3)},-${(8.13*factor).toFixed(3)},-${(3.99*factor).toFixed(3)},-${(11.46*factor).toFixed(3)},-${(5.81*factor).toFixed(3)},-${(7.76*factor).toFixed(3)},-${r3},-${(19.66*factor).toFixed(3)},-.01,-${(27.45*factor).toFixed(3)},${(2.5*factor).toFixed(3)},-${(3.35*factor).toFixed(3)},${r1},-${(7.33*factor).toFixed(3)},${r1},-${(11.5*factor).toFixed(3)}`,
       `v -${topSeg}`,
       `h -28.34 v -45.35 h 85.04 v 45.35 h -28.35 Z`
     ].join(' ');
+  }
+
+  function buildPath(cy) {
+    return buildPathFactor(cy, 1);
   }
 
   // ── 보라존 펄스 애니메이션 ─────────────────────────
@@ -579,6 +588,9 @@
 
   function pulseBall() {
     if (!isDragging || isExploding) { cancelPulse(); return; }
+    // 텍스트가 100% 타이핑 완료된 상태에서만 펄스 작동
+    if (revealedCount < allChars.length) { cancelPulse(); return; }
+
     const ratio = (ballCY - Y_MIN) / (Y_MAX - Y_MIN);
     if (ratio < PURPLE_ZONE) { cancelPulse(); return; }
 
@@ -603,24 +615,26 @@
     ball.setAttribute('y', (ballCY - BALL_R).toFixed(3));
     wall.setAttribute('d', buildPath(ballCY));
 
+    // 화살표 위치를 공 이동(ballCY)에 따라 실시간 추종
+    const deltaY = ballCY - 434.45;
+    const hintUD = document.getElementById('hint-updown');
+    const hintD  = document.getElementById('hint-down');
+    if (hintUD) hintUD.setAttribute('transform', `translate(0, ${deltaY})`);
+    if (hintD)  hintD.setAttribute('transform', `translate(0, ${deltaY})`);
+
     const ratio = (ballCY - Y_MIN) / (Y_MAX - Y_MIN);
     const hue = Math.round(ratio * 280);
     ball.setAttribute('fill', `hsl(${hue}, 100%, 50%)`);
 
     // 타이핑 텍스트 나타남 (드래그 누적 거리 기반)
     if (isDragging) {
-      // 처음 드래그 시 위아래 화살표 숨기기
-      const hintUD = document.getElementById('hint-updown');
-      if (hintUD) hintUD.setAttribute('opacity', '0');
-
       dragAmount += Math.abs(ballCY - lastCY);
       const charsToShow = Math.floor(dragAmount / DRAG_PER_CHAR);
       if (charsToShow > revealedCount) {
         revealChars(charsToShow);
       }
 
-      // 텍스트 다 나오면 아래 화살표 표시
-      const hintD = document.getElementById('hint-down');
+      // 텍스트 100% 완성 시에만 아래 화살표 및 폭발 힌트 활성화
       if (hintD) {
         if (revealedCount >= allChars.length) {
           hintD.setAttribute('opacity', '1');
@@ -631,10 +645,10 @@
     }
     lastCY = ballCY;
 
-    // 보라 구간 펄스 시작/종료
-    if (ratio >= PURPLE_ZONE && !pulseAnim && isDragging) {
+    // 보라 구간 펄스 시작/종료 (텍스트 100% 완성 시에만)
+    if (ratio >= PURPLE_ZONE && !pulseAnim && isDragging && revealedCount >= allChars.length) {
       pulseBall();
-    } else if (ratio < PURPLE_ZONE) {
+    } else if (ratio < PURPLE_ZONE || revealedCount < allChars.length) {
       cancelPulse();
     }
   }
@@ -860,11 +874,10 @@
 
     const ratio = (ballCY - Y_MIN) / (Y_MAX - Y_MIN);
 
-    if (ratio >= PURPLE_ZONE) {
-      // 보라 구간에서 손 뗌 → 폭발!
+    // 텍스트가 100% 다 나타난 상태에서만 보라 구간 손 뗌 시 폭발!
+    if (ratio >= PURPLE_ZONE && revealedCount >= allChars.length) {
       triggerExplosion();
     } else {
-      // 평범하게 놓음
       cancelPulse();
     }
   }
