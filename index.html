@@ -16,7 +16,7 @@
     }
     html, body {
       width: 100%; height: 100%;
-      background: #ffffff;
+      background: #f4f4f6;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -210,7 +210,7 @@
     <div id="final-main-text"></div>
     <div id="final-members-text" style="margin-top:28px;text-align:center;"></div>
     <div id="final-cta-wrap" style="margin-top:32px;text-align:center;">
-      <a id="final-cta-btn" href="https://ddp.or.kr/?menuno=240" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 30px;background:#fff100;color:#000000;text-decoration:none;border-radius:6px;border:2px solid #231f20;font-weight:800;font-size:clamp(14px, 3.8vw, 16px);box-shadow:3px 3px 0px #231f20;transition:transform 0.2s ease, opacity 0.6s ease;opacity:0;pointer-events:none;cursor:pointer;">
+      <a id="final-cta-btn" href="https://ddp.or.kr/?menuno=240" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 32px;background:#231f20;color:#ffffff;text-decoration:none;border-radius:4px;font-weight:800;font-size:clamp(14px, 3.8vw, 16px);border:none;box-shadow:none;transition:transform 0.2s ease, opacity 0.6s ease;opacity:0;pointer-events:none;cursor:pointer;">
         <span>더 알아보기</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
           <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -853,15 +853,22 @@
       const shakeX = Math.sin(t * 50) * shakeAmt;
       const shakeY = Math.cos(t * 40) * shakeAmt;
 
+      // 전체 SVG 아웃라인 검정선이 공 상승에 따라 동시에 투명하게 페이드아웃
+      const svgOpacity = Math.max(0, (1 - t * 1.3).toFixed(2));
+      svg.style.opacity = svgOpacity;
+
       svg.style.transformOrigin = '0 0';
       svg.style.transform = `translate(${tx + shakeX}px, ${ty + shakeY}px) scale(${zoom})`;
+
+      // 80% 상공에서 바로 회색 최종 초대장 화면으로 부드럽게 직행 (갑작스러운 줌아웃 스냅 완전 제거)
+      if (t >= 0.85) {
+        startFinalTyping();
+      }
 
       if (t < 1) {
         requestAnimationFrame(shootUp);
       } else {
-        svg.style.transform = '';
-        svg.style.transformOrigin = '';
-        explodeFromMouth();
+        svg.style.display = 'none';
       }
     }
     requestAnimationFrame(shootUp);
