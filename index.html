@@ -20,10 +20,10 @@
       overflow: hidden;
     }
     #main-svg {
-      width: 92vw;
-      height: 92vh;
-      max-width: 92vmin;
-      max-height: 92vmin;
+      width: 98vw;
+      height: 98vh;
+      max-width: 98vmin;
+      max-height: 98vmin;
       display: block;
       touch-action: none;
     }
@@ -170,30 +170,29 @@
   </g>
 
   <!-- 우측 상단 빈 공간에 텍스트 (foreignObject) -->
-  <!-- 우측 상단 빈 공간에 텍스트 (foreignObject) -->
-  <foreignObject x="484" y="276" width="87" height="113">
-    <div id="secret-text" xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; padding: 4px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; text-align: justify; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 5.1px; line-height: 1.35; letter-spacing: -0.2px; word-break: break-all; font-weight: 600; overflow: hidden;">
+  <foreignObject x="483.5" y="275.71" width="87.5" height="113.39">
+    <div id="secret-text" xmlns="http://www.w3.org/1999/xhtml" style="width: 100%; height: 100%; padding: 1px 3px; box-sizing: border-box; text-align: justify; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 5.15px; line-height: 1.52; letter-spacing: -0.22px; word-break: break-all; font-weight: 600; overflow: hidden;">
       <span><span style="color:#e60012">1년</span> 동안 준비한 <span style="color:#e60012">이야기</span>를 드디어 <span style="background:#8cc63f;color:#000;padding:0.2px 1px;">끝냈습니다.</span> 이제 <span style="color:#8cc63f">정말</span> 끝이라고 <span style="color:#00a1e9">생각</span>했습니다. <span style="color:#8cc63f">그런데</span> 자꾸 하나씩 생각이 나더라고요? '<span style="background:#fff100;color:#000;padding:0.2px 1px;">아,</span> <span style="background:#66c0f4;color:#000;padding:0.2px 1px;">이것도.</span>' '<span style="background:#66c0f4;color:#e60012;padding:0.2px 1px;">이것도</span> 말해야 하는데...' 그러다 보니 <span style="color:#e60012">여기</span>까지 왔습니다. <span style="color:#f0ad4e">음...</span> 생각보다 <span style="background:#8cc63f;color:#000;padding:0.2px 1px;">볼 것도</span> 많습니다. <span style="background:#fff100;color:#e4007f;padding:0.2px 1px;">영상</span>도 있고, <span style="background:#f37021;color:#00a1e9;padding:0.2px 1px;">인터랙션</span>도 있고, <span style="background:#e4007f;color:#fff100;padding:0.2px 1px;">사진</span>도 있고, <span style="background:#8cc63f;color:#f37021;padding:0.2px 1px;">그래픽</span>도 있고... 욕심이 꽤 <span style="color:#f37021">많습니다.</span> 아, <span style="color:#8cc63f">그리고..</span> <span style="background:#e6e6e6;color:#000;padding:0.2px 1px;">사실</span> 저희 진짜 <span style="color:#e60012">돈</span>도 많이 썼습니다. 이건 <span style="color:#e60012">농담</span>이 아니라 <span style="background:#fff100;color:#00a1e9;padding:0.2px 1px;">진심입니다.</span> 한 번쯤은 꼭 봐주셨으면 좋겠습니다... <span style="color:#f0ad4e">죄송합니다.</span> <span style="color:#e60012">이야기</span>가 자꾸 길어지네요. 아직 <span style="background:#8cc63f;color:#fff;padding:0.2px 1px;">하고 싶은 말</span>이 <span style="background:#66c0f4;color:#000;padding:0.2px 1px;">조금</span> <span style="color:#8cc63f">남았</span>나 봅니다. <span style="background:#f37021;color:#fff;padding:0.2px 1px;">마치</span> <span style="background:#e4007f;color:#fff;padding:0.2px 1px;">목에 걸린 사탕</span><span style="background:#f37021;color:#fff;padding:0.2px 1px;">처럼요...</span></span>
     </div>
   </foreignObject>
 
-  <!-- 화살표 힌트 -->
+  <!-- 화살표 힌트 (미니멀 선 화살표) -->
   <g id="hint-updown" class="hint-arrow" opacity="1">
     <!-- ▲ 위 화살표 -->
     <g style="animation: bounceUpDown 1.2s ease-in-out infinite;">
-      <polygon fill="#aaa" points="355,408 350,416 360,416" />
+      <polyline class="s" points="350,414 355,408 360,414" stroke-linecap="round" stroke-linejoin="round"/>
     </g>
     <!-- ▼ 아래 화살표 -->
     <g style="animation: bounceDown 1.2s ease-in-out infinite;">
-      <polygon fill="#aaa" points="355,462 350,454 360,454" />
+      <polyline class="s" points="350,456 355,462 360,456" stroke-linecap="round" stroke-linejoin="round"/>
     </g>
   </g>
 
   <!-- 아래로 내리라는 화살표 (텍스트 다 나온 후) -->
   <g id="hint-down" class="hint-arrow" opacity="0">
     <g style="animation: bounceDown 0.8s ease-in-out infinite;">
-      <polygon fill="#8b5cf6" points="355,462 348,450 362,450" />
-      <polygon fill="#8b5cf6" points="355,470 348,458 362,458" opacity="0.5" />
+      <polyline class="s" points="349,450 355,456 361,450" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline class="s" points="349,457 355,463 361,457" stroke-linecap="round" stroke-linejoin="round"/>
     </g>
   </g>
 
@@ -207,7 +206,68 @@
   const ball = document.getElementById('ball-mok3');
   const wall = document.getElementById('reactive-wall');
 
-  // ── 원본 SVG 수치 (변경 금지) ────────────────────
+  // ── 오프닝 검정 실선 드로잉 애니메이션 ──────────────────
+  function getElementLength(el) {
+    const tag = el.tagName.toLowerCase();
+    if (tag === 'line') {
+      const x1 = parseFloat(el.getAttribute('x1') || 0);
+      const y1 = parseFloat(el.getAttribute('y1') || 0);
+      const x2 = parseFloat(el.getAttribute('x2') || 0);
+      const y2 = parseFloat(el.getAttribute('y2') || 0);
+      return Math.hypot(x2 - x1, y2 - y1);
+    }
+    if (tag === 'rect') {
+      const w = parseFloat(el.getAttribute('width') || 0);
+      const h = parseFloat(el.getAttribute('height') || 0);
+      return 2 * (w + h);
+    }
+    if (tag === 'polygon') {
+      const pts = (el.getAttribute('points') || '').trim().split(/\s+|,/).map(Number).filter(n => !isNaN(n));
+      let len = 0;
+      for (let i = 0; i < pts.length - 2; i += 2) {
+        len += Math.hypot(pts[i+2] - pts[i], pts[i+3] - pts[i+1]);
+      }
+      if (pts.length >= 4) {
+        len += Math.hypot(pts[0] - pts[pts.length-2], pts[1] - pts[pts.length-1]);
+      }
+      return len > 0 ? len : 500;
+    }
+    try {
+      if (el.getTotalLength && el.getTotalLength() > 0) return el.getTotalLength();
+    } catch(e) {}
+    return 600;
+  }
+
+  function runOpeningAnimation() {
+    const strokeEls = document.querySelectorAll('#main-svg .s');
+
+    // 모든 검정 실선(.s) 정확한 길이가 나타나도록 strokeDasharray/offset 설정
+    strokeEls.forEach(el => {
+      const len = Math.ceil(getElementLength(el));
+      el.style.strokeDasharray = `${len} ${len}`;
+      el.style.strokeDashoffset = len;
+    });
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        strokeEls.forEach(el => {
+          el.style.transition = 'stroke-dashoffset 3.2s cubic-bezier(0.25, 1, 0.5, 1)';
+          el.style.strokeDashoffset = '0';
+        });
+
+        // 애니메이션 완료 후 드래그 인터랙션에 영향 주지 않게 스타일 초기화
+        setTimeout(() => {
+          strokeEls.forEach(el => {
+            el.style.strokeDasharray = '';
+            el.style.strokeDashoffset = '';
+            el.style.transition = '';
+          });
+        }, 3300);
+      });
+    });
+  }
+
+  runOpeningAnimation();
   const BALL_R      = 11.34;
   const TOP_Y       = 321.06;
   const FOOT_Y      = 547.83;
@@ -287,21 +347,26 @@
   }
   createCursor();
 
-  // 타이핑 효과음 (타닥 소리)
+  // 타이핑 효과음 (typing.mp3 사용 - 드래그 이동 시에만 싱글 오디오 재생)
+  const typeAudio = new Audio('src/typing.mp3');
+  typeAudio.volume = 0.6;
+  typeAudio.playbackRate = 1.5;
+  let audioStopTimer = null;
+
   function playTypeClick() {
-    if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    // 짧고 날카로운 클릭
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(800 + Math.random() * 600, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.03);
-    g.gain.setValueAtTime(0.08, audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
-    osc.connect(g);
-    g.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.05);
+    if (revealedCount >= allChars.length) {
+      typeAudio.pause();
+      return;
+    }
+    try {
+      if (typeAudio.paused) {
+        typeAudio.play().catch(() => {});
+      }
+      clearTimeout(audioStopTimer);
+      audioStopTimer = setTimeout(() => {
+        typeAudio.pause();
+      }, 120);
+    } catch(e) {}
   }
 
   function revealChars(count) {
@@ -462,9 +527,6 @@
     const ratio = (ballCY - Y_MIN) / (Y_MAX - Y_MIN);
     const hue = Math.round(ratio * 280);
     ball.setAttribute('fill', `hsl(${hue}, 100%, 50%)`);
-
-    // 사운드 업데이트
-    updateSound(ratio);
 
     // 타이핑 텍스트 나타남 (드래그 누적 거리 기반)
     if (isDragging) {
@@ -703,7 +765,6 @@
     if (isExploding) return;
     initAudio();
     isDragging = true;
-    startSound();
     e.preventDefault();
   }
 
@@ -716,6 +777,7 @@
   function onEnd() {
     if (!isDragging || isExploding) return;
     isDragging = false;
+    typeAudio.pause();
 
     const ratio = (ballCY - Y_MIN) / (Y_MAX - Y_MIN);
 
@@ -725,7 +787,6 @@
     } else {
       // 평범하게 놓음
       cancelPulse();
-      stopSound();
     }
   }
 
