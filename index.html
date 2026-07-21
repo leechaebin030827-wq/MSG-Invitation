@@ -870,10 +870,12 @@
           document.body.style.transform = '';
         }
 
+        if (t >= 0.8) {
+          startFinalTyping();
+        }
+
         if (t < 1 || particles.length > 0) {
           requestAnimationFrame(expandCircle);
-        } else {
-          startFinalTyping();
         }
       }
       requestAnimationFrame(expandCircle);
