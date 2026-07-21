@@ -204,6 +204,14 @@
   const ball = document.getElementById('ball-mok3');
   const wall = document.getElementById('reactive-wall');
 
+  // ── 원본 SVG 수치 (변경 금지) ────────────────────
+  const BALL_R      = 11.34;
+  const TOP_Y       = 321.06;
+  const FOOT_Y      = 547.83;
+  const BULGE_HALF  = 25.23;
+  const Y_MIN = TOP_Y  + BULGE_HALF + 4;
+  const Y_MAX = FOOT_Y - BULGE_HALF - 4;
+
   // 팝 사운드 효과음 (pop.mp3 사용)
   const popAudio = new Audio('src/pop.mp3');
   function playPopSound() {
@@ -345,12 +353,6 @@
   }
 
   runOpeningAnimation();
-  const BALL_R      = 11.34;
-  const TOP_Y       = 321.06;
-  const FOOT_Y      = 547.83;
-  const BULGE_HALF  = 25.23;
-  const Y_MIN = TOP_Y  + BULGE_HALF + 4;
-  const Y_MAX = FOOT_Y - BULGE_HALF - 4;
 
   // 입(mouth) 위치 (SVG 좌표 기준)
   const MOUTH_X = 355.08;  // 입 가로 중앙
