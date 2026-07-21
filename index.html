@@ -209,10 +209,10 @@
   <div id="final-text-box" style="color:#231f20;font-family:'Pretendard',-apple-system,sans-serif;max-width:620px;width:100%;text-align:justify;word-break:break-all;line-height:1.7;font-size:clamp(16px, 4.6vw, 22px);font-weight:700;user-select:none;">
     <div id="final-main-text"></div>
     <div id="final-members-text" style="margin-top:28px;text-align:center;"></div>
-    <div id="final-cta-wrap" style="margin-top:28px;text-align:center;">
-      <a id="final-cta-btn" href="https://www.naver.com" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 28px;background:#231f20;color:#ffffff;text-decoration:none;border-radius:30px;font-weight:700;font-size:clamp(13px, 3.6vw, 15px);box-shadow:0 4px 14px rgba(0,0,0,0.12);transition:transform 0.2s ease, opacity 0.6s ease;opacity:0;pointer-events:none;cursor:pointer;">
+    <div id="final-cta-wrap" style="margin-top:32px;text-align:center;">
+      <a id="final-cta-btn" href="https://ddp.or.kr/?menuno=240" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 30px;background:#fff100;color:#000000;text-decoration:none;border-radius:6px;border:2px solid #231f20;font-weight:800;font-size:clamp(14px, 3.8vw, 16px);box-shadow:3px 3px 0px #231f20;transition:transform 0.2s ease, opacity 0.6s ease;opacity:0;pointer-events:none;cursor:pointer;">
         <span>더 알아보기</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
           <line x1="5" y1="12" x2="19" y2="12"></line>
           <polyline points="12 5 19 12 12 19"></polyline>
         </svg>
@@ -813,10 +813,12 @@
 
       const currentY = startY + (endY - startY) * Math.max(0, ease);
 
-      // 공 위치 업데이트 & 검정 선(벽)에 닿지 않도록 벽 팽창을 평평하게 수축 (Retract wall flat)
+      // 공 위치 업데이트 & 검정 선(벽)에 걸리지 않도록 부드럽게 페이드아웃(투명도 낮아짐) + 평평 수축
       ball.setAttribute('y', (currentY - BALL_R).toFixed(3));
-      const wallRetractFactor = Math.max(0, 1 - t * 2.2); // 검정 선이 부드럽게 평평하게 수축
+      const wallRetractFactor = Math.max(0, 1 - t * 2.2);
+      const wallOpacity = Math.max(0, (1 - t * 1.4).toFixed(2)); // 검정 선 투명도 페이드아웃
       wall.setAttribute('d', buildPathFactor(Math.max(Y_MIN, Math.min(Y_MAX, currentY)), wallRetractFactor));
+      wall.setAttribute('opacity', wallOpacity);
 
       // 솟구쳐 오르는 슬림 로켓 스트레칭 (검정 선과 충돌 방지를 위해 가로폭 제어)
       const stretchRatio = Math.sin(t * Math.PI);
