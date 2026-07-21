@@ -209,6 +209,15 @@
   <div id="final-text-box" style="color:#231f20;font-family:'Pretendard',-apple-system,sans-serif;max-width:620px;width:100%;text-align:justify;word-break:break-all;line-height:1.7;font-size:clamp(16px, 4.6vw, 22px);font-weight:700;user-select:none;">
     <div id="final-main-text"></div>
     <div id="final-members-text" style="margin-top:28px;text-align:center;"></div>
+    <div id="final-cta-wrap" style="margin-top:28px;text-align:center;">
+      <a id="final-cta-btn" href="https://www.naver.com" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 28px;background:#231f20;color:#ffffff;text-decoration:none;border-radius:30px;font-weight:700;font-size:clamp(13px, 3.6vw, 15px);box-shadow:0 4px 14px rgba(0,0,0,0.12);transition:transform 0.2s ease, opacity 0.6s ease;opacity:0;pointer-events:none;cursor:pointer;">
+        <span>더 알아보기</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
+    </div>
   </div>
 </div>
 
@@ -978,6 +987,13 @@
         clearInterval(finalTimer);
         typeAudio.pause();
         typeAudio.loop = false;
+
+        // 더 알아보기 CTA 버튼 페이드인 나타남
+        const ctaBtn = document.getElementById('final-cta-btn');
+        if (ctaBtn) {
+          ctaBtn.style.opacity = '1';
+          ctaBtn.style.pointerEvents = 'auto';
+        }
       }
     }, 38);
   }
