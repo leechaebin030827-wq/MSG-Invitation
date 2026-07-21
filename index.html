@@ -634,13 +634,12 @@
         revealChars(charsToShow);
       }
 
-      // 텍스트 100% 완성 시에만 아래 화살표 및 폭발 힌트 활성화
-      if (hintD) {
-        if (revealedCount >= allChars.length) {
-          hintD.setAttribute('opacity', '1');
-        } else {
-          hintD.setAttribute('opacity', '0');
-        }
+      // 텍스트 100% 완성 시: 이전 위아래 화살표 숨기고 아래 화살표만 활성화
+      if (revealedCount >= allChars.length) {
+        if (hintD) hintD.setAttribute('opacity', '1');
+        if (hintUD) hintUD.setAttribute('opacity', '0');
+      } else {
+        if (hintD) hintD.setAttribute('opacity', '0');
       }
     }
     lastCY = ballCY;
