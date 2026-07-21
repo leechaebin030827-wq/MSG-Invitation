@@ -204,6 +204,16 @@
   const ball = document.getElementById('ball-mok3');
   const wall = document.getElementById('reactive-wall');
 
+  // 팝 사운드 효과음 (pop.mp3 사용)
+  const popAudio = new Audio('src/pop.mp3');
+  function playPopSound() {
+    try {
+      const sound = popAudio.cloneNode();
+      sound.volume = 0.7;
+      sound.play().catch(() => {});
+    } catch(e) {}
+  }
+
   // ── 오프닝 검정 실선 드로잉 애니메이션 ──────────────────
   function getElementLength(el) {
     const tag = el.tagName.toLowerCase();
@@ -236,31 +246,100 @@
     return 600;
   }
 
+  function buildFlatPath() {
+    return `M 369.25,${TOP_Y} v 226.77 h 28.35 v 22.68 h -85.04 v -22.68 h 28.34 v -226.77 h -28.34 v -45.35 h 85.04 v 45.35 h -28.35 Z`;
+  }
+
   function runOpeningAnimation() {
     const strokeEls = document.querySelectorAll('#main-svg .s');
+    const candyEls  = document.querySelectorAll('#main-svg rect[fill]');
+    const eyeEls    = document.querySelectorAll('#main-svg .d');
+    const hintUD    = document.getElementById('hint-updown');
 
-    // 모든 검정 실선(.s) 정확한 길이가 나타나도록 strokeDasharray/offset 설정
+    if (hintUD) hintUD.style.opacity = '0';
+
+    // 처음에는 벽이 완전히 평평(직선)하게 설정
+    wall.setAttribute('d', buildFlatPath());
+
+    // 1. 모든 검정 실선(.s) 드로잉 준비
     strokeEls.forEach(el => {
       const len = Math.ceil(getElementLength(el));
       el.style.strokeDasharray = `${len} ${len}`;
       el.style.strokeDashoffset = len;
     });
 
+    // 2. 사탕 동그라미들과 눈 점 처음 스케일 0 숨김
+    candyEls.forEach(el => {
+      const x = parseFloat(el.getAttribute('x') || 0) + parseFloat(el.getAttribute('width') || 0)/2;
+      const y = parseFloat(el.getAttribute('y') || 0) + parseFloat(el.getAttribute('height') || 0)/2;
+      el.style.transformOrigin = `${x}px ${y}px`;
+      el.style.transform = 'scale(0)';
+      el.style.opacity = '0';
+    });
+
+    eyeEls.forEach(el => {
+      el.style.opacity = '0';
+    });
+
+    // 3. 선 그리기 애니메이션 시작 (2.4초 동안)
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         strokeEls.forEach(el => {
-          el.style.transition = 'stroke-dashoffset 3.2s cubic-bezier(0.25, 1, 0.5, 1)';
+          el.style.transition = 'stroke-dashoffset 2.4s cubic-bezier(0.25, 1, 0.5, 1)';
           el.style.strokeDashoffset = '0';
         });
 
-        // 애니메이션 완료 후 드래그 인터랙션에 영향 주지 않게 스타일 초기화
+        // 4. 선이 거의 완성될 즈음(1.8초) 사탕 동그라미들 순차적으로 톡톡 팝인
+        setTimeout(() => {
+          candyEls.forEach((el, idx) => {
+            setTimeout(() => {
+              playPopSound();
+              el.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease';
+              el.style.opacity = '1';
+              el.style.transform = 'scale(1)';
+
+              // 주황 볼(mok3)이 나타날 때 평평했던 벽이 볼 모양에 맞춰 팽창(expand)
+              if (el.id === 'ball-mok3') {
+                let expandProgress = 0;
+                function animateWallExpand() {
+                  if (expandProgress >= 1) {
+                    update(434.45);
+                    return;
+                  }
+                  expandProgress += 0.05;
+                  // 평평한 벽에서 볼록한 벽으로 스무스하게 팽창
+                  if (expandProgress < 1) {
+                    const currentPath = buildPath(434.45); // 벽 확장
+                    wall.setAttribute('d', currentPath);
+                  }
+                  requestAnimationFrame(animateWallExpand);
+                }
+                animateWallExpand();
+              }
+            }, idx * 120);
+          });
+
+          // 눈 점 나타남
+          eyeEls.forEach(el => {
+            el.style.transition = 'opacity 0.4s ease';
+            el.style.opacity = '1';
+          });
+        }, 1800);
+
+        // 5. 오프닝 완료 후 스타일 정리 및 힌트 화살표 표시
         setTimeout(() => {
           strokeEls.forEach(el => {
             el.style.strokeDasharray = '';
             el.style.strokeDashoffset = '';
             el.style.transition = '';
           });
-        }, 3300);
+          candyEls.forEach(el => {
+            el.style.transition = '';
+            el.style.transform = '';
+            el.style.transformOrigin = '';
+          });
+          if (hintUD) hintUD.style.opacity = '1';
+        }, 3000);
       });
     });
   }
