@@ -936,16 +936,23 @@
       finalScreen.style.opacity = '1';
     });
 
+    // typing.mp3 음원 재생 시작
+    try {
+      typeAudio.currentTime = 0;
+      typeAudio.loop = true;
+      typeAudio.play().catch(() => {});
+    } catch(e) {}
+
     let fIdx = 0;
     const finalTimer = setInterval(() => {
       if (fIdx < finalChars.length) {
         finalChars[fIdx].style.display = 'inline';
-        playTypeClick();
         triggerHaptic();
         fIdx++;
       } else {
         clearInterval(finalTimer);
         typeAudio.pause();
+        typeAudio.loop = false;
       }
     }, 38);
   }
