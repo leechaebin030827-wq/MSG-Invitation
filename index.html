@@ -25,10 +25,13 @@
       text-size-adjust: 100%;
     }
     #main-svg {
-      width: 100vw;
-      height: 100vh;
+      width: 88vw;
+      height: 88vh;
+      max-width: 480px;
+      max-height: 82vh;
       display: block;
       touch-action: none;
+      margin: auto;
     }
     #ball-mok3 {
       cursor: grab;
@@ -205,12 +208,12 @@
 <canvas id="explosion-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;"></canvas>
 
 <!-- final screen typed invitation text layer (off-white light gray background) -->
-<div id="final-screen" style="position:fixed;top:0;left:0;width:100vw;height:100vh;display:none;align-items:center;justify-content:center;z-index:10000;padding:28px 20px;box-sizing:border-box;opacity:0;transition:opacity 0.8s ease;background:#f4f4f6;">
-  <div id="final-text-box" style="color:#231f20;font-family:'Pretendard',-apple-system,sans-serif;max-width:620px;width:100%;text-align:justify;word-break:break-all;line-height:1.7;font-size:clamp(16px, 4.6vw, 22px);font-weight:700;user-select:none;">
+<div id="final-screen" style="position:fixed;top:0;left:0;width:100vw;height:100vh;display:none;align-items:center;justify-content:center;z-index:10000;padding:36px 32px;box-sizing:border-box;opacity:0;transition:opacity 0.8s ease;background:#f4f4f6;">
+  <div id="final-text-box" style="color:#231f20;font-family:'Pretendard',-apple-system,sans-serif;max-width:480px;width:100%;text-align:justify;word-break:break-all;line-height:1.7;font-size:clamp(14px, 3.8vw, 18.5px);font-weight:700;user-select:none;">
     <div id="final-main-text"></div>
-    <div id="final-members-text" style="margin-top:28px;text-align:center;"></div>
-    <div id="final-cta-wrap" style="margin-top:32px;text-align:center;">
-      <a id="final-cta-btn" href="https://ddp.or.kr/?menuno=240" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 32px;background:#231f20;color:#ffffff;text-decoration:none;border-radius:4px;font-weight:800;font-size:clamp(14px, 3.8vw, 16px);border:none;box-shadow:none;transition:transform 0.2s ease, opacity 0.6s ease;opacity:0;pointer-events:none;cursor:pointer;">
+    <div id="final-members-text" style="margin-top:24px;text-align:center;"></div>
+    <div id="final-cta-wrap" style="margin-top:26px;text-align:center;">
+      <a id="final-cta-btn" href="https://ddp.or.kr/?menuno=240" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 26px;background:#231f20;color:#ffffff;text-decoration:none;border-radius:4px;font-weight:800;font-size:clamp(13px, 3.4vw, 14.5px);border:none;box-shadow:none;transition:transform 0.2s ease, opacity 0.6s ease;opacity:0;pointer-events:none;cursor:pointer;">
         <span>더 알아보기</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -921,7 +924,7 @@
   // ── 최종 오프화이트 화면 타이핑 시스템 (컬러 하이라이트 고정 적용) ─────────────────────────
   const FINAL_MAIN_HTML = `<span style="background:#e4007f;color:#fff;padding:0.2px 2px;">제 목에 걸린 사탕</span>을 <span style="color:#8cc63f">빼주실 분</span>을 <span style="background:#fff100;color:#000;padding:0.2px 2px;">초대합니다.</span><br/><br/><span style="color:#e60012">오래</span> 준비한 <span style="color:#e60012">이야기</span>들을 드디어 <span style="background:#8cc63f;color:#000;padding:0.2px 2px;">DDP</span>에 <span style="background:#fff100;color:#000;padding:0.2px 2px;">꺼내놓습니다.</span> 이제 <span style="color:#8cc63f">정말</span> 끝이라고 <span style="color:#00a1e9">생각</span>했습니다. <span style="color:#8cc63f">그런데</span> 보여드리고 싶은 건 <span style="background:#66c0f4;color:#000;padding:0.2px 2px;">아직</span> 많더라고요. 그래서 <span style="background:#e4007f;color:#fff;padding:0.2px 2px;">준비했습니다.</span> 한 번쯤 꼭 <span style="background:#f37021;color:#fff;padding:0.2px 2px;">보러</span> 와주세요...<br/><br/><span style="color:#e60012">홍익대학교</span> 디자인컨버전스학부 <span style="background:#fff100;color:#e4007f;padding:0.2px 2px;">졸업전시</span><br/><span style="background:#8cc63f;color:#000;padding:0.2px 2px;">2026. 00. 00–00. 00</span> / 10:00–19:00 <span style="background:#66c0f4;color:#000;padding:0.2px 2px;">DDP 디자인랩 1층 D-숲</span>`;
 
-  const FINAL_MEMBERS_HTML = `<div style="font-weight:800;margin-bottom:8px;color:#231f20;background:#fff100;display:inline-block;padding:2px 8px;border-radius:4px;font-size:clamp(15px, 4.2vw, 19px);">참여자</div><div style="font-size:clamp(13px, 3.6vw, 15.5px);line-height:1.8;color:#333333;font-weight:600;margin-top:6px;">강예은 · 김서윤 · 김예준 · 김주희 · 김창래 · 김희서 · 모소연 · 박시형 · 박정연 · 박지혜 · 손예림 · 양서경 · 왕은빈 · 이채빈 · 장지혁 · 정규태 · 조유정 · 진아름 · 황예은</div>`;
+  const FINAL_MEMBERS_HTML = `<div style="font-weight:800;margin-bottom:6px;color:#231f20;background:#fff100;display:inline-block;padding:2px 7px;border-radius:4px;font-size:clamp(13.5px, 3.5vw, 16px);">참여자</div><div style="font-size:clamp(11.5px, 3.0vw, 14px);line-height:1.75;color:#333333;font-weight:600;margin-top:4px;">강예은 · 김서윤 · 김예준 · 김주희 · 김창래 · 김희서 · 모소연 · 박시형 · 박정연 · 박지혜 · 손예림 · 양서경 · 왕은빈 · 이채빈 · 장지혁 · 정규태 · 조유정 · 진아름 · 황예은</div>`;
 
   let finalChars = [];
   let isFinalTypingStarted = false;
