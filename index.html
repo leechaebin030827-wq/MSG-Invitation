@@ -453,11 +453,11 @@
     } catch(e) {}
   }
 
-  // 햅틱 진동 효과 (모바일 폰용)
-  function triggerHaptic() {
-    if ('vibrate' in navigator) {
+  // 햅틱 진동 효과 (Android 모바일 지원)
+  function triggerHaptic(duration = 15) {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       try {
-        navigator.vibrate(10);
+        navigator.vibrate(duration);
       } catch(e) {}
     }
   }
