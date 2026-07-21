@@ -169,14 +169,13 @@
   </foreignObject>
 </svg>
 
-<!-- 보라색 폭발 오버레이 -->
-<div id="purple-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:hsl(280,100%,50%);opacity:0;pointer-events:none;z-index:999;transition:none;"></div>
+<!-- 보라색 폭발 오버레이 + 파티클 캔버스 -->
+<canvas id="explosion-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;"></canvas>
 
 <script>
   const svg  = document.getElementById('main-svg');
   const ball = document.getElementById('ball-mok3');
   const wall = document.getElementById('reactive-wall');
-  const overlay = document.getElementById('purple-overlay');
 
   // ── 원본 SVG 수치 (변경 금지) ────────────────────
   const BALL_R      = 11.34;
@@ -353,52 +352,197 @@
     }
   }
 
-  // ── 폭발 시퀀스 ──────────────────────────────────
+  // ── 폭발 시퀀스 (다이내믹 버전) ────────────────────
+  const canvas = document.getElementById('explosion-canvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth * devicePixelRatio;
+    canvas.height = window.innerHeight * devicePixelRatio;
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  // SVG 좌표 → 화면 좌표 변환
+  function svgToScreen(sx, sy) {
+    const pt = svg.createSVGPoint();
+    pt.x = sx; pt.y = sy;
+    const ctm = svg.getScreenCTM();
+    const sp = pt.matrixTransform(ctm);
+    return { x: sp.x, y: sp.y };
+  }
+
+  // 파티클 클래스
+  class Particle {
+    constructor(x, y, hue) {
+      this.x = x; this.y = y;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 3 + Math.random() * 12;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+      this.life = 1;
+      this.decay = 0.008 + Math.random() * 0.015;
+      this.size = 3 + Math.random() * 8;
+      this.hue = hue + (Math.random() - 0.5) * 40;
+      this.gravity = 0.05 + Math.random() * 0.1;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.vy += this.gravity;
+      this.vx *= 0.99;
+      this.life -= this.decay;
+    }
+    draw(ctx) {
+      ctx.globalAlpha = this.life * 0.8;
+      ctx.fillStyle = `hsl(${this.hue}, 100%, ${50 + (1 - this.life) * 30}%)`;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
   function triggerExplosion() {
     isExploding = true;
     cancelPulse();
     stopSound();
-    playExplosionSound();
 
-    const ballCX = 343.74 + 11.34; // 355.08
+    const ballCX = 343.74 + 11.34;
     const startY = ballCY;
     const endY   = MOUTH_Y;
-    const duration = 400; // ms
-    let startTime = null;
 
-    // 1단계: 공이 입으로 쏘아 올라감
-    function shootUp(ts) {
-      if (!startTime) startTime = ts;
-      const t = Math.min(1, (ts - startTime) / duration);
-      // easeOutExpo
-      const ease = 1 - Math.pow(2, -10 * t);
-      const cy = startY + (endY - startY) * ease;
+    // ── 1단계: 에너지 압축 (공이 잠깐 쪼그라들며 떨림) ──
+    let compressStart = null;
+    const compressDur = 300;
 
-      ball.setAttribute('y', (cy - BALL_R).toFixed(3));
-      wall.setAttribute('d', buildPath(Math.max(Y_MIN, Math.min(Y_MAX, cy))));
+    function compress(ts) {
+      if (!compressStart) compressStart = ts;
+      const t = Math.min(1, (ts - compressStart) / compressDur);
 
-      // 점점 커짐
-      const growScale = 1 + t * 1.5;
-      ball.setAttribute('transform', `translate(${ballCX}, ${cy}) scale(${growScale}) translate(${-ballCX}, ${-cy})`);
+      // 떨림 + 수축
+      const shake = Math.sin(t * 30) * (1 - t) * 3;
+      const squish = 1 - t * 0.3;
+      const cx = ballCX + shake;
+      const cy = ballCY;
+      ball.setAttribute('transform',
+        `translate(${cx}, ${cy}) scale(${squish * 0.8}, ${squish * 1.2}) translate(${-cx}, ${-cy})`);
+
+      // 화면 미세 떨림
+      document.body.style.transform = `translate(${shake}px, ${Math.sin(t*40)*2}px)`;
 
       if (t < 1) {
-        requestAnimationFrame(shootUp);
+        requestAnimationFrame(compress);
       } else {
-        // 2단계: 보라색 폭발
-        explodeScreen();
+        document.body.style.transform = '';
+        shootUpPhase();
       }
     }
-    requestAnimationFrame(shootUp);
-  }
+    requestAnimationFrame(compress);
 
-  function explodeScreen() {
-    // SVG 전체 페이드 아웃
-    svg.style.transition = 'opacity 0.6s ease-out';
-    svg.style.opacity = '0';
+    // ── 2단계: 쏘아 올라감 (스트레칭 + 속도감) ──
+    function shootUpPhase() {
+      playExplosionSound();
+      let shootStart = null;
+      const shootDur = 350;
 
-    // 보라 오버레이 등장
-    overlay.style.transition = 'opacity 0.4s ease-out';
-    overlay.style.opacity = '1';
+      function shootUp(ts) {
+        if (!shootStart) shootStart = ts;
+        const t = Math.min(1, (ts - shootStart) / shootDur);
+        // easeOutExpo (매우 빠르게 출발)
+        const ease = 1 - Math.pow(2, -12 * t);
+        const cy = startY + (endY - startY) * ease;
+
+        ball.setAttribute('y', (cy - BALL_R).toFixed(3));
+        wall.setAttribute('d', buildPath(Math.max(Y_MIN, Math.min(Y_MAX, cy))));
+
+        // 스트레칭: 처음에 세로로 길쭉 → 점점 원형 → 커짐
+        const stretchY = 1 + (1 - t) * 0.8;  // 1.8 → 1
+        const stretchX = 1 - (1 - t) * 0.3;  // 0.7 → 1
+        const growScale = 1 + t * 2;
+        ball.setAttribute('transform',
+          `translate(${ballCX}, ${cy}) scale(${stretchX * growScale}, ${stretchY * growScale}) translate(${-ballCX}, ${-cy})`);
+
+        // 화면 흔들림 (위쪽 가속감)
+        const shakeAmt = (1 - t) * 4;
+        document.body.style.transform = `translateY(${shakeAmt * Math.sin(t * 50)}px)`;
+
+        // 공 뒤로 잔상 트레일 (파티클로)
+        if (t < 0.7) {
+          const screenPos = svgToScreen(ballCX, cy);
+          for (let i = 0; i < 3; i++) {
+            particles.push(new Particle(screenPos.x, screenPos.y, 280));
+          }
+        }
+
+        if (t < 1) {
+          requestAnimationFrame(shootUp);
+        } else {
+          document.body.style.transform = '';
+          explodeFromMouth();
+        }
+      }
+      requestAnimationFrame(shootUp);
+    }
+
+    // ── 3단계: 입에서 폭발 ──
+    function explodeFromMouth() {
+      const mouthScreen = svgToScreen(MOUTH_X, MOUTH_Y);
+
+      // 대량 파티클 폭발
+      for (let i = 0; i < 120; i++) {
+        const p = new Particle(mouthScreen.x, mouthScreen.y, 280);
+        p.vx *= 2.5;
+        p.vy *= 2.5;
+        p.size *= 1.5;
+        p.decay *= 0.5;
+        particles.push(p);
+      }
+
+      // 보라색 원 확장 시작
+      let expandStart = null;
+      const maxRadius = Math.hypot(window.innerWidth, window.innerHeight);
+
+      function expandCircle(ts) {
+        if (!expandStart) expandStart = ts;
+        const t = Math.min(1, (ts - expandStart) / 1200);
+        // easeOutQuart
+        const ease = 1 - Math.pow(1 - t, 4);
+        const radius = ease * maxRadius;
+
+        // 캔버스 그리기
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+        // 보라색 원 확장
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = `hsl(280, 100%, 50%)`;
+        ctx.beginPath();
+        ctx.arc(mouthScreen.x, mouthScreen.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 파티클 업데이트 & 드로우
+        particles = particles.filter(p => p.life > 0);
+        particles.forEach(p => { p.update(); p.draw(ctx); });
+
+        // SVG 페이드아웃 (원이 커지면서)
+        svg.style.opacity = Math.max(0, 1 - t * 2);
+
+        // 화면 흔들림 (초반만)
+        if (t < 0.3) {
+          const shake = (1 - t / 0.3) * 6;
+          document.body.style.transform =
+            `translate(${Math.sin(t*80) * shake}px, ${Math.cos(t*60) * shake}px)`;
+        } else {
+          document.body.style.transform = '';
+        }
+
+        if (t < 1 || particles.length > 0) {
+          requestAnimationFrame(expandCircle);
+        }
+      }
+      requestAnimationFrame(expandCircle);
+    }
   }
 
   function svgY(e) {
