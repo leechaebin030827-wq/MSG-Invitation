@@ -892,27 +892,7 @@
   }
   }
 
-  // ── 최종 화면 텍스트 하이라이트 컬러 사이클링 시스템 (배경 고정 + 텍스트 색상 전환) ─────────────────────────
-  let paletteAnim = null;
-  function startPaletteCycle() {
-    const finalScreen = document.getElementById('final-screen');
-    const textBox = document.getElementById('final-text-box');
-    if (!finalScreen || !textBox) return;
-
-    // 배경색은 원본 시그니처 보라색(hsl(280, 100%, 50%)) 고정!
-    finalScreen.style.background = 'hsl(280, 100%, 50%)';
-
-    let hueDeg = 0;
-    function step() {
-      hueDeg = (hueDeg + 0.6) % 360; // 60fps 실크스무스 텍스트 하이라이트 컬러 무지개 회전
-      // 배경은 고정된 채, 텍스트의 형광펜/컬러 하이라이트 색상들만 기존 팔레트 내에서 부드럽게 무한 변화!
-      textBox.style.filter = `hue-rotate(${hueDeg}deg)`;
-      paletteAnim = requestAnimationFrame(step);
-    }
-    paletteAnim = requestAnimationFrame(step);
-  }
-
-  // ── 최종 보라색 화면 타이핑 시스템 (컬러 하이라이트 디자인 적용) ─────────────────────────
+  // ── 최종 보라색 화면 타이핑 시스템 (컬러 하이라이트 고정 적용) ─────────────────────────
   const FINAL_MAIN_HTML = `<span style="background:#e4007f;color:#fff;padding:0.2px 2px;">제 목에 걸린 사탕</span>을 <span style="color:#8cc63f">빼주실 분</span>을 <span style="background:#fff100;color:#000;padding:0.2px 2px;">초대합니다.</span><br/><br/><span style="color:#e60012">오래</span> 준비한 <span style="color:#e60012">이야기</span>들을 드디어 <span style="background:#8cc63f;color:#000;padding:0.2px 2px;">DDP</span>에 <span style="background:#fff100;color:#000;padding:0.2px 2px;">꺼내놓습니다.</span> 이제 <span style="color:#8cc63f">정말</span> 끝이라고 <span style="color:#00a1e9">생각</span>했습니다. <span style="color:#8cc63f">그런데</span> 보여드리고 싶은 건 <span style="background:#66c0f4;color:#000;padding:0.2px 2px;">아직</span> 많더라고요. 그래서 <span style="background:#e4007f;color:#fff;padding:0.2px 2px;">준비했습니다.</span> 한 번쯤 꼭 <span style="background:#f37021;color:#fff;padding:0.2px 2px;">보러</span> 와주세요...<br/><br/><span style="color:#e60012">홍익대학교</span> 디자인컨버전스학부 <span style="background:#fff100;color:#e4007f;padding:0.2px 2px;">졸업전시</span><br/><span style="background:#8cc63f;color:#000;padding:0.2px 2px;">2026. 00. 00–00. 00</span> / 10:00–19:00 <span style="background:#66c0f4;color:#000;padding:0.2px 2px;">DDP 디자인랩 1층 D-숲</span>`;
 
   const FINAL_MEMBERS_HTML = `<div style="font-weight:800;margin-bottom:8px;color:#fff100;font-size:clamp(15px, 4.2vw, 19px);">참여자</div><div style="font-size:clamp(13px, 3.6vw, 15.5px);line-height:1.8;color:rgba(255,255,255,0.95);font-weight:600;">강예은 · 김서윤 · 김예준 · 김주희 · 김창래 · 김희서 · 모소연 · 박시형 · 박정연 · 박지혜 · 손예림 · 양서경 · 왕은빈 · 이채빈 · 장지혁 · 정규태 · 조유정 · 진아름 · 황예은</div>`;
@@ -990,8 +970,6 @@
         clearInterval(finalTimer);
         typeAudio.pause();
         typeAudio.loop = false;
-        // 텍스트 타이핑 100% 완독 시 팔레트 사이클링 시작!
-        startPaletteCycle();
       }
     }, 38);
   }
