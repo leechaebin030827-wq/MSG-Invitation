@@ -206,16 +206,9 @@
 
 <!-- final purple screen typed invitation text layer -->
 <div id="final-screen" style="position:fixed;top:0;left:0;width:100vw;height:100vh;display:none;align-items:center;justify-content:center;z-index:10000;padding:24px;box-sizing:border-box;opacity:0;transition:opacity 0.8s ease;background:hsl(280,100%,50%);">
-  <div id="final-text-box" style="color:#ffffff;font-family:'Pretendard',-apple-system,sans-serif;max-width:540px;width:100%;text-align:center;word-break:keep-all;line-height:1.75;user-select:none;">
-    <div id="final-quote" style="font-size:clamp(14px, 4vw, 18px);font-weight:700;line-height:1.85;margin-bottom:28px;color:#ffffff;">
-      <!-- quote lines -->
-    </div>
-    <div id="final-info" style="font-size:clamp(13px, 3.6vw, 16px);font-weight:800;color:#000000;background:#fff100;padding:12px 16px;border-radius:12px;margin-bottom:28px;box-shadow:0 4px 15px rgba(0,0,0,0.15);line-height:1.6;">
-      <!-- info lines -->
-    </div>
-    <div id="final-members" style="font-size:clamp(11px, 3vw, 13px);font-weight:600;color:rgba(255,255,255,0.92);line-height:1.75;">
-      <!-- members lines -->
-    </div>
+  <div id="final-text-box" style="color:#ffffff;font-family:'Pretendard',-apple-system,sans-serif;max-width:520px;width:100%;text-align:justify;word-break:break-all;line-height:1.62;font-size:clamp(13px, 3.8vw, 17px);font-weight:600;user-select:none;">
+    <div id="final-main-text"></div>
+    <div id="final-members-text" style="margin-top:24px;text-align:center;"></div>
   </div>
 </div>
 
@@ -882,45 +875,54 @@
     }
   }
 
-  // ── 최종 보라색 화면 타이핑 시스템 ─────────────────────────
-  const FINAL_QUOTE_TEXT = `오래 준비한 이야기들을
-드디어 DDP에 꺼내놓습니다.
-끝났다고 생각했는데,
-보여드리고 싶은 건 아직 많더라고요.
-그래서 준비했습니다. 한 번쯤 꼭 보러 와주세요.`;
+  // ── 최종 보라색 화면 타이핑 시스템 (컬러 하이라이트 디자인 적용) ─────────────────────────
+  const FINAL_MAIN_HTML = `<span style="color:#e60012">오래</span> 준비한 <span style="color:#e60012">이야기</span>들을 드디어 <span style="background:#8cc63f;color:#000;padding:0.2px 2px;">DDP</span>에 <span style="background:#fff100;color:#000;padding:0.2px 2px;">꺼내놓습니다.</span> 이제 <span style="color:#8cc63f">정말</span> 끝이라고 <span style="color:#00a1e9">생각</span>했습니다. <span style="color:#8cc63f">그런데</span> 보여드리고 싶은 건 <span style="background:#66c0f4;color:#000;padding:0.2px 2px;">아직</span> 많더라고요. 그래서 <span style="background:#e4007f;color:#fff;padding:0.2px 2px;">준비했습니다.</span> 한 번쯤 꼭 <span style="background:#f37021;color:#fff;padding:0.2px 2px;">보러</span> 와주세요... <span style="color:#e60012">홍익대학교</span> 디자인 <span style="background:#fff100;color:#e4007f;padding:0.2px 2px;">졸업전시</span> <span style="background:#8cc63f;color:#000;padding:0.2px 2px;">2026. 00. 00–00. 00</span> / 10:00–19:00 <span style="background:#66c0f4;color:#000;padding:0.2px 2px;">DDP 디자인랩 1층 D-숲</span>`;
 
-  const FINAL_INFO_TEXT = `홍익대학교 디자인 졸업전시
-2026. 00. 00–00. 00 / 10:00–19:00
-DDP 디자인랩 1층 D-숲`;
-
-  const FINAL_MEMBERS_TEXT = `참여자
-강예은 · 김서윤 · 김예준 · 김주희 · 김창래 · 김희서 · 모소연 · 박시형 · 박정연 · 박지혜 · 손예림 · 양서경 · 왕은빈 · 이채빈 · 장지혁 · 정규태 · 조유정 · 진아름 · 황예은`;
+  const FINAL_MEMBERS_HTML = `<div style="font-weight:700;margin-bottom:6px;color:#fff100;font-size:clamp(12px, 3.5vw, 15px);">참여자</div><div style="font-size:clamp(11px, 3.2vw, 13.5px);line-height:1.75;color:rgba(255,255,255,0.95);font-weight:600;">강예은 · 김서윤 · 김예준 · 김주희 · 김창래 · 김희서 · 모소연 · 박시형 · 박정연 · 박지혜 · 손예림 · 양서경 · 왕은빈 · 이채빈 · 장지혁 · 정규태 · 조유정 · 진아름 · 황예은</div>`;
 
   let finalChars = [];
   let isFinalTypingStarted = false;
 
-  function prepareFinalTextSection(elementId, rawText) {
-    const el = document.getElementById(elementId);
-    if (!el) return;
-    let html = '';
-    const lines = rawText.split('\n');
-    lines.forEach((line, lIdx) => {
-      for (const ch of line) {
-        if (ch === ' ') {
-          html += '<span class="fch" style="display:none;"> </span>';
+  function wrapFinalNodes(node) {
+    let result = '';
+    node.childNodes.forEach(child => {
+      if (child.nodeType === 3) {
+        for (const ch of child.textContent) {
+          if (ch === ' ') {
+            result += '<span class="fch" style="display:none;"> </span>';
+          } else {
+            result += `<span class="fch" style="display:none;">${ch}</span>`;
+          }
+        }
+      } else if (child.nodeType === 1) {
+        const tag = child.tagName.toLowerCase();
+        if (tag === 'br') {
+          result += '<br/>';
         } else {
-          html += `<span class="fch" style="display:none;">${ch}</span>`;
+          let attrs = '';
+          for (const attr of child.attributes) {
+            attrs += ` ${attr.name}="${attr.value}"`;
+          }
+          result += `<${tag}${attrs}>${wrapFinalNodes(child)}</${tag}>`;
         }
       }
-      if (lIdx < lines.length - 1) html += '<br/>';
     });
-    el.innerHTML = html;
+    return result;
   }
 
   function initFinalText() {
-    prepareFinalTextSection('final-quote', FINAL_QUOTE_TEXT);
-    prepareFinalTextSection('final-info', FINAL_INFO_TEXT);
-    prepareFinalTextSection('final-members', FINAL_MEMBERS_TEXT);
+    const mainEl = document.getElementById('final-main-text');
+    const membEl = document.getElementById('final-members-text');
+    if (!mainEl || !membEl) return;
+
+    const tempMain = document.createElement('div');
+    tempMain.innerHTML = FINAL_MAIN_HTML;
+    mainEl.innerHTML = wrapFinalNodes(tempMain);
+
+    const tempMemb = document.createElement('div');
+    tempMemb.innerHTML = FINAL_MEMBERS_HTML;
+    membEl.innerHTML = wrapFinalNodes(tempMemb);
+
     finalChars = Array.from(document.querySelectorAll('.fch'));
   }
 
