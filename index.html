@@ -777,51 +777,61 @@
     } catch(e) {}
   }
 
-  // ── 2단계: 쏘아 올라감 (카메라 클로즈업 줌인 + 트래킹 모션) ──
+  // ── 2단계: 쏘아 올라감 (시네마틱 카메라 정중앙 줌인 & 포커스 트래킹 모션) ──
   function shootUpPhase() {
     playOutSound();
     let shootStart = null;
-    const shootDur = 450; // 약간 더 여유있고 다이내믹하게 (450ms)
+    const shootDur = 720; // 720ms로 속도감과 카메라 트래킹 감상 시간 부여
 
     function shootUp(ts) {
       if (!shootStart) shootStart = ts;
       const t = Math.min(1, (ts - shootStart) / shootDur);
-      // easeOutExpo (매우 빠르게 출발)
-      const ease = 1 - Math.pow(2, -12 * t);
-      const cy = startY + (endY - startY) * ease;
+      
+      // 강력한 위쪽 가속 파워 곡선 (anticipation -> rocket acceleration)
+      const ease = t < 0.15 
+        ? -0.5 * (t / 0.15) // 초반 15% 살짝 밑으로 웅크리기(Anticipation)
+        : 1 - Math.pow(1 - (t - 0.15)/0.85, 3); // 솟구치는 가속
+
+      const cy = startY + (endY - startY) * Math.max(0, ease);
 
       ball.setAttribute('y', (cy - BALL_R).toFixed(3));
       wall.setAttribute('d', buildPath(Math.max(Y_MIN, Math.min(Y_MAX, cy))));
 
-      // 스트레칭: 처음에 세로로 길쭉 → 점점 원형 → 커짐
-      const stretchY = 1 + (1 - t) * 0.9;  // 1.9 → 1
-      const stretchX = 1 - (1 - t) * 0.35; // 0.65 → 1
-      const growScale = 1 + t * 2.2;
+      // 솟구쳐 오르는 로켓 스트레칭 (세로로 길쭉하게 쫙 늘어남)
+      const stretchRatio = Math.sin(t * Math.PI);
+      const stretchY = 1 + stretchRatio * 1.2;  // 최대 2.2배 세로 스트레칭
+      const stretchX = 1 - stretchRatio * 0.35; // 0.65배 가로 슬림화
+      const growScale = 1 + t * 1.5;
       ball.setAttribute('transform',
         `translate(${ballCX}, ${cy}) scale(${stretchX * growScale}, ${stretchY * growScale}) translate(${-ballCX}, ${-cy})`);
 
-      // 카메라 포커스 줌인 & 날아가는 공 위치 실시간 클로즈업 트래킹
-      const zoom = 1 + t * 1.8; // 1x → 2.8x 줌인
+      // 🎥 카메라 포커스: 보라색 공이 정확히 화면 정중앙에 위치하도록 줌인 + 트래킹
+      const zoom = 1 + Math.sin(Math.min(1, t * 1.1) * Math.PI * 0.75) * 1.8; // 1.0x -> 2.8x 줌인
       const ballPos = svgToScreen(ballCX, cy);
-      const shakeAmt = (1 - t) * 5;
-      const shakeX = Math.sin(t * 60) * shakeAmt;
-      const shakeY = Math.cos(t * 50) * shakeAmt;
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const shiftX = centerX - ballPos.x;
+      const shiftY = centerY - ballPos.y;
 
-      document.body.style.transformOrigin = `${ballPos.x}px ${ballPos.y}px`;
-      document.body.style.transform = `scale(${zoom}) translate(${shakeX}px, ${shakeY}px)`;
+      const shakeAmt = Math.sin(t * Math.PI) * 4;
+      const shakeX = Math.sin(t * 70) * shakeAmt;
+      const shakeY = Math.cos(t * 60) * shakeAmt;
 
-      // 공 뒤로 잔상 트레일 (파티클로)
-      if (t < 0.8) {
-        for (let i = 0; i < 3; i++) {
-          particles.push(new Particle(ballPos.x, ballPos.y, 280));
+      svg.style.transformOrigin = `${ballPos.x}px ${ballPos.y}px`;
+      svg.style.transform = `translate(${shiftX + shakeX}px, ${shiftY + shakeY}px) scale(${zoom})`;
+
+      // 공 뒤로 불꽃 잔상 파티클 트레일
+      if (t > 0.1 && t < 0.9) {
+        for (let i = 0; i < 4; i++) {
+          particles.push(new Particle(centerX + (Math.random()-0.5)*20, centerY + (Math.random()-0.5)*20, 280));
         }
       }
 
       if (t < 1) {
         requestAnimationFrame(shootUp);
       } else {
-        document.body.style.transform = '';
-        document.body.style.transformOrigin = '';
+        svg.style.transform = '';
+        svg.style.transformOrigin = '';
         explodeFromMouth();
       }
     }
