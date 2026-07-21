@@ -212,7 +212,7 @@
     <div id="final-cta-wrap" style="margin-top:32px;text-align:center;">
       <a id="final-cta-btn" href="https://ddp.or.kr/?menuno=240" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 32px;background:#231f20;color:#ffffff;text-decoration:none;border-radius:4px;font-weight:800;font-size:clamp(14px, 3.8vw, 16px);border:none;box-shadow:none;transition:transform 0.2s ease, opacity 0.6s ease;opacity:0;pointer-events:none;cursor:pointer;">
         <span>더 알아보기</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="5" y1="12" x2="19" y2="12"></line>
           <polyline points="12 5 19 12 12 19"></polyline>
         </svg>
@@ -853,8 +853,8 @@
       const shakeX = Math.sin(t * 50) * shakeAmt;
       const shakeY = Math.cos(t * 40) * shakeAmt;
 
-      // 전체 SVG 아웃라인 검정선이 공 상승에 따라 동시에 투명하게 페이드아웃
-      const svgOpacity = Math.max(0, (1 - t * 1.3).toFixed(2));
+      // 전체 SVG 아웃라인 검정선이 공 상승 궤적에 맞춰 은은하게 페이드아웃 (0 ~ 1.0 전체 구간 균형 조절)
+      const svgOpacity = Math.max(0, (1 - Math.pow(t, 1.4)).toFixed(2));
       svg.style.opacity = svgOpacity;
 
       svg.style.transformOrigin = '0 0';
