@@ -777,7 +777,7 @@
     } catch(e) {}
   }
 
-  // ── 2단계: 쏘아 올라감 (시네마틱 카메라 정중앙 줌인 & 포커스 트래킹 모션) ──
+  // ── 2단계: 쏘아 올라감 (시네마틱 카메라 정중앙 줌인 & 1.2초 여유 있는 트래킹) ──
   function shootUpPhase() {
     playOutSound();
     
@@ -786,18 +786,18 @@
     const endScreenPos   = svgToScreen(MOUTH_X, MOUTH_Y);
 
     let shootStart = null;
-    const shootDur = 650; // 650ms의 다이내믹 템포
+    const shootDur = 1200; // 1200ms(1.2초)로 훨씬 여유 있고 부드럽게 감상 가능한 트래킹 템포
 
     function shootUp(ts) {
       if (!shootStart) shootStart = ts;
       const t = Math.min(1, (ts - shootStart) / shootDur);
 
-      // 탄성 반동(Anticipation 10%) 후 솟구치는 3차 가속곡선
+      // 부드러운 탄성 반동 후 솟구치는 3차 가속곡선
       let ease;
-      if (t < 0.1) {
-        ease = -0.3 * (t / 0.1); // 살짝 아래로 반동
+      if (t < 0.12) {
+        ease = -0.2 * (t / 0.12); // 초반 부드러운 하향 반동
       } else {
-        const progress = (t - 0.1) / 0.9;
+        const progress = (t - 0.12) / 0.88;
         ease = progress * progress * (3 - 2 * progress); // smooth cubic acceleration
       }
 
@@ -809,9 +809,9 @@
 
       // 솟구쳐 오르는 로켓 스트레칭
       const stretchRatio = Math.sin(t * Math.PI);
-      const stretchY = 1 + stretchRatio * 1.1;  // 세로 스트레칭
-      const stretchX = 1 - stretchRatio * 0.3;  // 가로 슬림화
-      const growScale = 1 + t * 1.4;
+      const stretchY = 1 + stretchRatio * 0.9;  // 세로 스트레칭
+      const stretchX = 1 - stretchRatio * 0.25; // 가로 슬림화
+      const growScale = 1 + t * 1.3;
       ball.setAttribute('transform',
         `translate(${ballCX}, ${currentY}) scale(${stretchX * growScale}, ${stretchY * growScale}) translate(${-ballCX}, ${-currentY})`);
 
@@ -819,30 +819,23 @@
       const currScreenX = startScreenPos.x + (endScreenPos.x - startScreenPos.x) * Math.max(0, ease);
       const currScreenY = startScreenPos.y + (endScreenPos.y - startScreenPos.y) * Math.max(0, ease);
 
-      // 줌 레벨: 1.0배 -> 최대 2.5배 줌인
-      const zoom = 1 + Math.sin(t * Math.PI * 0.85) * 1.5;
+      // 줌 레벨: 1.0배 -> 최대 2.2배 줌인
+      const zoom = 1 + Math.sin(t * Math.PI * 0.85) * 1.2;
 
       const screenW = window.innerWidth;
       const screenH = window.innerHeight;
 
-      // 카메라가 공(currScreenX, currScreenY)을 정확히 화면 중앙 (screenW/2, screenH/2)에 렌더링하도록 이동
+      // 카메라가 공(currScreenX, currScreenY)을 정확히 화면 중앙에 렌더링하도록 이동
       const tx = (screenW / 2) - (currScreenX * zoom);
       const ty = (screenH / 2) - (currScreenY * zoom);
 
-      // 박진감 넘치는 위쪽 흔들림(shake)
-      const shakeAmt = Math.sin(t * Math.PI) * 5;
-      const shakeX = Math.sin(t * 80) * shakeAmt;
-      const shakeY = Math.cos(t * 70) * shakeAmt;
+      // 미세한 실크스무스 흔들림
+      const shakeAmt = Math.sin(t * Math.PI) * 3;
+      const shakeX = Math.sin(t * 50) * shakeAmt;
+      const shakeY = Math.cos(t * 40) * shakeAmt;
 
       svg.style.transformOrigin = '0 0';
       svg.style.transform = `translate(${tx + shakeX}px, ${ty + shakeY}px) scale(${zoom})`;
-
-      // 공 뒤 잔상 파티클 흩날림
-      if (t > 0.1 && t < 0.9) {
-        for (let i = 0; i < 3; i++) {
-          particles.push(new Particle(screenW / 2 + (Math.random() - 0.5) * 24, screenH / 2 + (Math.random() - 0.5) * 24, 280));
-        }
-      }
 
       if (t < 1) {
         requestAnimationFrame(shootUp);
@@ -855,67 +848,40 @@
     requestAnimationFrame(shootUp);
   }
 
-    // ── 3단계: 입에서 폭발 ──
-    function explodeFromMouth() {
-      const mouthScreen = svgToScreen(MOUTH_X, MOUTH_Y);
+  // ── 3단계: 입에서 보라색 원 깔끔 확장 ──
+  function explodeFromMouth() {
+    const mouthScreen = svgToScreen(MOUTH_X, MOUTH_Y);
 
-      // 대량 파티클 폭발
-      for (let i = 0; i < 120; i++) {
-        const p = new Particle(mouthScreen.x, mouthScreen.y, 280);
-        p.vx *= 2.5;
-        p.vy *= 2.5;
-        p.size *= 1.5;
-        p.decay *= 0.5;
-        particles.push(p);
+    let expandStart = null;
+    const maxRadius = Math.hypot(window.innerWidth, window.innerHeight);
+
+    function expandCircle(ts) {
+      if (!expandStart) expandStart = ts;
+      const t = Math.min(1, (ts - expandStart) / 1000);
+      const ease = 1 - Math.pow(1 - t, 4);
+      const radius = ease * maxRadius;
+
+      // 캔버스 그리기 (파티클 없이 깔끔한 순수 보라색 원 확장)
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = `hsl(280, 100%, 50%)`;
+      ctx.beginPath();
+      ctx.arc(mouthScreen.x, mouthScreen.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // SVG 페이드아웃 (원이 커지면서)
+      svg.style.opacity = Math.max(0, 1 - t * 2);
+
+      if (t >= 0.8) {
+        startFinalTyping();
       }
 
-      // 보라색 원 확장 시작
-      let expandStart = null;
-      const maxRadius = Math.hypot(window.innerWidth, window.innerHeight);
-
-      function expandCircle(ts) {
-        if (!expandStart) expandStart = ts;
-        const t = Math.min(1, (ts - expandStart) / 1200);
-        // easeOutQuart
-        const ease = 1 - Math.pow(1 - t, 4);
-        const radius = ease * maxRadius;
-
-        // 캔버스 그리기
-        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
-        // 보라색 원 확장
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = `hsl(280, 100%, 50%)`;
-        ctx.beginPath();
-        ctx.arc(mouthScreen.x, mouthScreen.y, radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 파티클 업데이트 & 드로우
-        particles = particles.filter(p => p.life > 0);
-        particles.forEach(p => { p.update(); p.draw(ctx); });
-
-        // SVG 페이드아웃 (원이 커지면서)
-        svg.style.opacity = Math.max(0, 1 - t * 2);
-
-        // 화면 흔들림 (초반만)
-        if (t < 0.3) {
-          const shake = (1 - t / 0.3) * 6;
-          document.body.style.transform =
-            `translate(${Math.sin(t*80) * shake}px, ${Math.cos(t*60) * shake}px)`;
-        } else {
-          document.body.style.transform = '';
-        }
-
-        if (t >= 0.8) {
-          startFinalTyping();
-        }
-
-        if (t < 1 || particles.length > 0) {
-          requestAnimationFrame(expandCircle);
-        }
+      if (t < 1) {
+        requestAnimationFrame(expandCircle);
       }
-      requestAnimationFrame(expandCircle);
     }
+    requestAnimationFrame(expandCircle);
+  }
   }
 
   // ── 최종 보라색 화면 타이핑 시스템 (컬러 하이라이트 디자인 적용) ─────────────────────────
