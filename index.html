@@ -892,17 +892,21 @@
   }
   }
 
-  // ── 최종 화면팔레트 부드러운 컬러 사이클링 시스템 ─────────────────────────
+  // ── 최종 화면 텍스트 하이라이트 컬러 사이클링 시스템 (배경 고정 + 텍스트 색상 전환) ─────────────────────────
   let paletteAnim = null;
   function startPaletteCycle() {
     const finalScreen = document.getElementById('final-screen');
-    if (!finalScreen) return;
-    let currentHue = 280; // 280도 보라색에서 시작
+    const textBox = document.getElementById('final-text-box');
+    if (!finalScreen || !textBox) return;
 
+    // 배경색은 원본 시그니처 보라색(hsl(280, 100%, 50%)) 고정!
+    finalScreen.style.background = 'hsl(280, 100%, 50%)';
+
+    let hueDeg = 0;
     function step() {
-      currentHue = (currentHue + 0.35) % 360; // 60fps 실크스무스 무지개 팔레트 이동
-      // 38% 어두운 명도(Lightness)를 유지하여 어떤 색상으로 바뀌어도 흰색/노란색/빨간색 글씨 100% 가독성 보장!
-      finalScreen.style.background = `hsl(${currentHue}, 88%, 38%)`;
+      hueDeg = (hueDeg + 0.6) % 360; // 60fps 실크스무스 텍스트 하이라이트 컬러 무지개 회전
+      // 배경은 고정된 채, 텍스트의 형광펜/컬러 하이라이트 색상들만 기존 팔레트 내에서 부드럽게 무한 변화!
+      textBox.style.filter = `hue-rotate(${hueDeg}deg)`;
       paletteAnim = requestAnimationFrame(step);
     }
     paletteAnim = requestAnimationFrame(step);
