@@ -159,64 +159,246 @@
           width="22.68" height="22.68"
           rx="11.34" ry="11.34"/>
   </g>
+
+  <!-- 우측 상단 빈 공간에 텍스트 (foreignObject) -->
+  <!-- 우측 상단 빈 공간에 텍스트 (foreignObject) -->
+  <foreignObject x="484" y="276" width="87" height="113">
+    <div id="secret-text" xmlns="http://www.w3.org/1999/xhtml" style="opacity: 0; width: 100%; height: 100%; padding: 4px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; text-align: justify; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 5.1px; line-height: 1.35; letter-spacing: -0.2px; word-break: break-all; font-weight: 600; transition: opacity 0.3s ease-out;">
+      <span><span style="color:#e60012">1년</span> 동안 준비한 <span style="color:#e60012">이야기</span>를 드디어 <span style="background:#8cc63f;color:#000;padding:0.2px 1px;">끝냈습니다.</span> 이제 <span style="color:#8cc63f">정말</span> 끝이라고 <span style="color:#00a1e9">생각</span>했습니다. <span style="color:#8cc63f">그런데</span> 자꾸 하나씩 생각이 나더라고요? '<span style="background:#fff100;color:#000;padding:0.2px 1px;">아,</span> <span style="background:#66c0f4;color:#000;padding:0.2px 1px;">이것도.</span>' '<span style="background:#66c0f4;color:#e60012;padding:0.2px 1px;">이것도</span> 말해야 하는데...' 그러다 보니 <span style="color:#e60012">여기</span>까지 왔습니다. <span style="color:#f0ad4e">음...</span> 생각보다 <span style="background:#8cc63f;color:#000;padding:0.2px 1px;">볼 것도</span> 많습니다. <span style="background:#fff100;color:#e4007f;padding:0.2px 1px;">영상</span>도 있고, <span style="background:#f37021;color:#00a1e9;padding:0.2px 1px;">인터랙션</span>도 있고, <span style="background:#e4007f;color:#fff100;padding:0.2px 1px;">사진</span>도 있고, <span style="background:#8cc63f;color:#f37021;padding:0.2px 1px;">그래픽</span>도 있고... 욕심이 꽤 <span style="color:#f37021">많습니다.</span> 아, <span style="color:#8cc63f">그리고..</span> <span style="background:#e6e6e6;color:#000;padding:0.2px 1px;">사실</span> 저희 진짜 <span style="color:#e60012">돈</span>도 많이 썼습니다. 이건 <span style="color:#e60012">농담</span>이 아니라 <span style="background:#fff100;color:#00a1e9;padding:0.2px 1px;">진심입니다.</span> 한 번쯤은 꼭 봐주셨으면 좋겠습니다... <span style="color:#f0ad4e">죄송합니다.</span> <span style="color:#e60012">이야기</span>가 자꾸 길어지네요. 아직 <span style="background:#8cc63f;color:#fff;padding:0.2px 1px;">하고 싶은 말</span>이 <span style="background:#66c0f4;color:#000;padding:0.2px 1px;">조금</span> <span style="color:#8cc63f">남았</span>나 봅니다. <span style="background:#f37021;color:#fff;padding:0.2px 1px;">마치</span> <span style="background:#e4007f;color:#fff;padding:0.2px 1px;">목에 걸린 사탕</span><span style="background:#f37021;color:#fff;padding:0.2px 1px;">처럼요...</span></span>
+    </div>
+  </foreignObject>
 </svg>
+
+<!-- 보라색 폭발 오버레이 -->
+<div id="purple-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:hsl(280,100%,50%);opacity:0;pointer-events:none;z-index:999;transition:none;"></div>
 
 <script>
   const svg  = document.getElementById('main-svg');
   const ball = document.getElementById('ball-mok3');
   const wall = document.getElementById('reactive-wall');
+  const overlay = document.getElementById('purple-overlay');
 
   // ── 원본 SVG 수치 (변경 금지) ────────────────────
   const BALL_R      = 11.34;
-  const TOP_Y       = 321.06;   // 기둥 시작 Y
-  const FOOT_Y      = 547.83;   // 발 시작 Y  (v88.16 직전 끝 지점)
-  // 원본에서 bulge 구간: 409.22 ~ 459.67 (총 50.45)
-  // 볼 원본 중심 Y = 423.11 + 11.34 = 434.45
-  // bulge 절반높이 = 434.45 - 409.22 = 25.23
+  const TOP_Y       = 321.06;
+  const FOOT_Y      = 547.83;
   const BULGE_HALF  = 25.23;
+  const Y_MIN = TOP_Y  + BULGE_HALF + 4;
+  const Y_MAX = FOOT_Y - BULGE_HALF - 4;
 
-  // 드래그 가능 범위 (bulge가 기둥 밖으로 나가지 않도록)
-  const Y_MIN = TOP_Y  + BULGE_HALF + 4;  // ≈ 350
-  const Y_MAX = FOOT_Y - BULGE_HALF - 4;  // ≈ 519
+  // 입(mouth) 위치 (SVG 좌표 기준)
+  const MOUTH_X = 355.08;  // 입 가로 중앙
+  const MOUTH_Y = 301.22;  // 입 세로 중앙
 
-  let ballCY     = 434.45;  // 초기 볼 중심 Y
-  let isDragging  = false;
-  let hue         = 0;       // 무지개 hue
-  let rafId       = null;    // requestAnimationFrame ID
+  let ballCY      = 434.45;
+  let isDragging   = false;
+  let dragAmount   = 0;
+  let lastCY       = 434.45;
+  let isExploding  = false;
+  let pulseAnim    = null;
+  const secretTxt  = document.getElementById('secret-text');
 
-  // ── 원본 bezier 값을 그대로 유지, 직선 구간 길이만 변경 ──
+  // ── Web Audio API ────────────────────────────────
+  let audioCtx = null;
+  let activeOsc = [];
+  let gainNode = null;
+
+  function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = 0;
+    gainNode.connect(audioCtx.destination);
+  }
+
+  function startSound() {
+    if (!audioCtx) return;
+    stopSound();
+    // 메인 톤 + 서브 톤
+    const freqs = [220, 330, 440];
+    freqs.forEach(f => {
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      osc.connect(gainNode);
+      osc.start();
+      activeOsc.push(osc);
+    });
+    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+  }
+
+  function updateSound(ratio) {
+    if (!audioCtx || !gainNode || activeOsc.length === 0) return;
+    // ratio: 0(위) ~ 1(아래, 보라)
+    // 볼륨: 0 → 0.3
+    gainNode.gain.setTargetAtTime(ratio * 0.3, audioCtx.currentTime, 0.05);
+    // 주파수 올리기: 아래로 갈수록 높은 피치 + detuning
+    activeOsc.forEach((osc, i) => {
+      const baseFreq = [220, 330, 440][i];
+      osc.frequency.setTargetAtTime(
+        baseFreq + ratio * 400 + Math.sin(Date.now() * 0.01 * (i + 1)) * ratio * 50,
+        audioCtx.currentTime, 0.05
+      );
+      osc.type = ratio > 0.7 ? 'sawtooth' : ratio > 0.4 ? 'triangle' : 'sine';
+    });
+  }
+
+  function stopSound() {
+    activeOsc.forEach(o => { try { o.stop(); } catch(e){} });
+    activeOsc = [];
+    if (gainNode) gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
+  }
+
+  // ── 폭발 사운드 ──────────────────────────────────
+  function playExplosionSound() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.8);
+    g.gain.setValueAtTime(0.5, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.2);
+    osc.connect(g);
+    g.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 1.2);
+
+    // 노이즈 버스트
+    const bufSize = audioCtx.sampleRate * 0.5;
+    const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.3;
+    const noise = audioCtx.createBufferSource();
+    const ng = audioCtx.createGain();
+    noise.buffer = buf;
+    ng.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    ng.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+    noise.connect(ng);
+    ng.connect(audioCtx.destination);
+    noise.start();
+  }
+
+  // ── 경로 빌드 ────────────────────────────────────
   function buildPath(cy) {
-    const bStart = cy - BULGE_HALF;   // bulge 시작 Y
-    const bEnd   = cy + BULGE_HALF;   // bulge 끝 Y
-    const topSeg = (bStart - TOP_Y).toFixed(3);   // 상단 직선 구간 길이
-    const botSeg = (FOOT_Y  - bEnd).toFixed(3);   // 하단 직선 구간 길이
-
+    const bStart = cy - BULGE_HALF;
+    const bEnd   = cy + BULGE_HALF;
+    const topSeg = (bStart - TOP_Y).toFixed(3);
+    const botSeg = (FOOT_Y  - bEnd).toFixed(3);
     return [
       `M 369.25,${TOP_Y}`,
       `v ${topSeg}`,
-      // 오른쪽 내벽 bulge (원본 bezier 그대로)
       `c 0,4.18,1.51,8.16,4.01,11.5,5.83,7.79,5.83,19.65,0,27.44,-2.5,3.34,-4.01,7.33,-4.01,11.51`,
       `v ${botSeg}`,
-      // 하단 발
       `h 28.35 v 22.68 h -85.04 v -22.68 h 28.34`,
       `v -${botSeg}`,
-      // 왼쪽 내벽 bulge (원본 bezier 그대로, 방향 반전)
       `c 0,-4.16,-1.5,-8.13,-3.99,-11.46,-5.81,-7.76,-5.84,-19.66,-.01,-27.45,2.5,-3.35,4.01,-7.33,4.01,-11.5`,
       `v -${topSeg}`,
-      // 상단 바
       `h -28.34 v -45.35 h 85.04 v 45.35 h -28.35 Z`
     ].join(' ');
   }
 
+  // ── 보라존 펄스 애니메이션 ─────────────────────────
+  const PURPLE_ZONE = 0.85; // ratio > 0.85 = 보라 구간
+  let pulsePhase = 0;
+
+  function pulseBall() {
+    if (!isDragging || isExploding) { cancelPulse(); return; }
+    const ratio = (ballCY - Y_MIN) / (Y_MAX - Y_MIN);
+    if (ratio < PURPLE_ZONE) { cancelPulse(); return; }
+
+    pulsePhase += 0.15;
+    const scale = 1 + 0.15 * Math.sin(pulsePhase);
+    const cx = 343.74 + 11.34;
+    const cy = ballCY;
+    ball.setAttribute('transform', `translate(${cx}, ${cy}) scale(${scale}) translate(${-cx}, ${-cy})`);
+    pulseAnim = requestAnimationFrame(pulseBall);
+  }
+
+  function cancelPulse() {
+    if (pulseAnim) { cancelAnimationFrame(pulseAnim); pulseAnim = null; }
+    ball.removeAttribute('transform');
+    pulsePhase = 0;
+  }
+
+  // ── 업데이트 ──────────────────────────────────────
   function update(cy) {
+    if (isExploding) return;
     ballCY = Math.max(Y_MIN, Math.min(Y_MAX, cy));
     ball.setAttribute('y', (ballCY - BALL_R).toFixed(3));
     wall.setAttribute('d', buildPath(ballCY));
 
-    // ── 높이에 따른 무지개 색상 (Y_MIN: 빨강 0deg -> Y_MAX: 보라 280deg) ──
     const ratio = (ballCY - Y_MIN) / (Y_MAX - Y_MIN);
     const hue = Math.round(ratio * 280);
     ball.setAttribute('fill', `hsl(${hue}, 100%, 50%)`);
+
+    // 사운드 업데이트
+    updateSound(ratio);
+
+    // 텍스트 나타남
+    if (isDragging) {
+      dragAmount += Math.abs(ballCY - lastCY);
+      if (dragAmount > 100) {
+        let op = Math.min(1, (dragAmount - 100) / 400);
+        secretTxt.style.opacity = op;
+      }
+    }
+    lastCY = ballCY;
+
+    // 보라 구간 펄스 시작/종료
+    if (ratio >= PURPLE_ZONE && !pulseAnim && isDragging) {
+      pulseBall();
+    } else if (ratio < PURPLE_ZONE) {
+      cancelPulse();
+    }
+  }
+
+  // ── 폭발 시퀀스 ──────────────────────────────────
+  function triggerExplosion() {
+    isExploding = true;
+    cancelPulse();
+    stopSound();
+    playExplosionSound();
+
+    const ballCX = 343.74 + 11.34; // 355.08
+    const startY = ballCY;
+    const endY   = MOUTH_Y;
+    const duration = 400; // ms
+    let startTime = null;
+
+    // 1단계: 공이 입으로 쏘아 올라감
+    function shootUp(ts) {
+      if (!startTime) startTime = ts;
+      const t = Math.min(1, (ts - startTime) / duration);
+      // easeOutExpo
+      const ease = 1 - Math.pow(2, -10 * t);
+      const cy = startY + (endY - startY) * ease;
+
+      ball.setAttribute('y', (cy - BALL_R).toFixed(3));
+      wall.setAttribute('d', buildPath(Math.max(Y_MIN, Math.min(Y_MAX, cy))));
+
+      // 점점 커짐
+      const growScale = 1 + t * 1.5;
+      ball.setAttribute('transform', `translate(${ballCX}, ${cy}) scale(${growScale}) translate(${-ballCX}, ${-cy})`);
+
+      if (t < 1) {
+        requestAnimationFrame(shootUp);
+      } else {
+        // 2단계: 보라색 폭발
+        explodeScreen();
+      }
+    }
+    requestAnimationFrame(shootUp);
+  }
+
+  function explodeScreen() {
+    // SVG 전체 페이드 아웃
+    svg.style.transition = 'opacity 0.6s ease-out';
+    svg.style.opacity = '0';
+
+    // 보라 오버레이 등장
+    overlay.style.transition = 'opacity 0.4s ease-out';
+    overlay.style.opacity = '1';
   }
 
   function svgY(e) {
@@ -228,21 +410,42 @@
   }
 
   // ── 이벤트 리스너 ────────────────────────────────
-  ball.addEventListener('mousedown',  e => { isDragging = true; e.preventDefault(); });
-  ball.addEventListener('touchstart', e => { isDragging = true; e.preventDefault(); }, { passive: false });
-
-  window.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    update(svgY(e));
-  });
-  window.addEventListener('touchmove', e => {
-    if (!isDragging) return;
+  function onStart(e) {
+    if (isExploding) return;
+    initAudio();
+    isDragging = true;
+    startSound();
     e.preventDefault();
-    update(svgY(e));
-  }, { passive: false });
+  }
 
-  window.addEventListener('mouseup',  () => { isDragging = false; });
-  window.addEventListener('touchend', () => { isDragging = false; });
+  function onMove(e) {
+    if (!isDragging || isExploding) return;
+    if (e.cancelable) e.preventDefault();
+    update(svgY(e));
+  }
+
+  function onEnd() {
+    if (!isDragging || isExploding) return;
+    isDragging = false;
+
+    const ratio = (ballCY - Y_MIN) / (Y_MAX - Y_MIN);
+
+    if (ratio >= PURPLE_ZONE) {
+      // 보라 구간에서 손 뗌 → 폭발!
+      triggerExplosion();
+    } else {
+      // 평범하게 놓음
+      cancelPulse();
+      stopSound();
+    }
+  }
+
+  ball.addEventListener('mousedown', onStart);
+  ball.addEventListener('touchstart', onStart, { passive: false });
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('mouseup', onEnd);
+  window.addEventListener('touchend', onEnd);
 </script>
 
 </body>
